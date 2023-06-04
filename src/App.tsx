@@ -1,17 +1,11 @@
 import React from 'react';
-import BabylonViewport from './BabylonViewport'; // adjust the path based on your file structure
-import AddSphereButton from './AddSphereButton';
+import Viewport from './UI/Viewport/Viewport'; // adjust the path based on your file structure
 
 function App() {
-  const { addSphere, canvasRef } = BabylonViewport();
-
   return (
     <div className="App">
-      <header className="App-header">
-      <canvas ref={canvasRef} style={{ width: '100%', height: '600px' }} />
-        <AddSphereButton addSphere={addSphere} />
-      </header>
-    </div>
+    <Viewport />
+  </div>
   );
 }
 
