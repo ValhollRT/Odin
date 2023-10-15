@@ -8,7 +8,8 @@ export class BabylonManager {
     private constructor(canvas: HTMLCanvasElement | null) {
         this.engine = canvas ? new Engine(canvas, true) : new NullEngine();
         this.scene = new Scene(this.engine);
-        new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), this.scene);
+        let camera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 2, 2, Vector3.Zero(), this.scene);
+        camera.attachControl(this.scene,true);
         new HemisphericLight("light1", new Vector3(1, 1, 0), this.scene);
 
         this.engine.runRenderLoop(() => {
