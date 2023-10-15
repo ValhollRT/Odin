@@ -1,48 +1,32 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import GeometryButton from '../Buttons/GeomtryButtons';
-import { GeometryType } from '../../Engine/Geometry/GeometryType';
-import { GeometryFactory } from '../../Engine/Geometry/GeometryFactory';
+// Viewport.tsx
+import React, { useEffect, useRef, useState, useContext } from 'react';
 import { BabylonManager } from '../../Engine/Geometry/BabylonManager';
+// Viewport.tsx
 
-function Viewport() {
+interface ViewportProps {
+  onReady: (manager: BabylonManager) => void;
+}
+
+function Viewport({ onReady }: ViewportProps) {
   const canvasRef = useRef(null);
-  const [geometryFactory, setGeometryFactory] = useState<GeometryFactory | null>(null);
 
   useEffect(() => {
+    console.log("...Viewport");
     if (canvasRef.current) {
-      const babylonManager = BabylonManager.getInstance(canvasRef.current);
-      setGeometryFactory(new GeometryFactory(babylonManager.scene));
-      
+      console.log("Cargado Viewport", canvasRef.current);
+      const manager = BabylonManager.getInstance(canvasRef.current);
+      onReady(manager); // Llamamos a onReady y pasamos el manager
       return () => {
-        babylonManager.dispose();
+        manager.dispose();
       };
+    }else{
+      console.log("No se ha cargado el canvasRef");
     }
   }, []);
-
-  const geometryCreationFunctions = useMemo(() => {
-    if (geometryFactory) {
-      return {
-        [GeometryType.Sphere]: geometryFactory.createSphere.bind(geometryFactory),
-        [GeometryType.Box]: geometryFactory.createBox.bind(geometryFactory),
-      };
-    }
-  }, [geometryFactory]);
 
   return (
     <div>
       <canvas ref={canvasRef} id="renderCanvas" style={{ width: '100%', height: '100%' }} />
-      {geometryCreationFunctions && Object.keys(GeometryType)
-        .filter(k => isNaN(Number(k)))
-        .map(key => {
-          const geometryType = GeometryType[key as keyof typeof GeometryType];
-          return (
-            <GeometryButton
-              key={geometryType}
-              createGeometry={geometryCreationFunctions[geometryType]}
-              label={`Add ${GeometryType[geometryType]}`} 
-            />
-          );
-        })}
     </div>
   );
 }
