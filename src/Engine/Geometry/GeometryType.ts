@@ -1,4 +1,13 @@
 export enum GeometryType {
+    Sphere,
     Box,
-    Sphere
-} 
+    Cylinder,
+    Cone,
+    Torus,
+    Plane,
+    Pyramid,
+    Ring,
+    Ellipsoid,
+    Polygon
+  }
+  

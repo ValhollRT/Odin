@@ -4,6 +4,7 @@ import Viewport from './UI/Viewport/Viewport'; // adjust the path based on your 
 import SidebarControl from './UI/Sidebar/SidebarControl';
 import { BabylonManagerContext } from './BabylonManagerContext'; // Importa el contexto
 import { BabylonManager } from './Engine/Geometry/BabylonManager'; // Importa el manager
+import Login from './UI/Login';
 
 function App() {
   const [isViewportReady, setIsViewportReady] = useState(false);
@@ -15,11 +16,20 @@ function App() {
     console.log("Cargado App", manager)
   }
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+
   return (
     <BabylonManagerContext.Provider value={{ babylonManager, isReady: isViewportReady }}>
       <div className="App">
-        <Viewport onReady={onReady} />
-        {isViewportReady && <SidebarControl />}
+        {!isLoggedIn ? (
+          <div>
+            <Viewport onReady={onReady} />
+            {isViewportReady && <SidebarControl />}
+          </div>
+        ) : (
+          <Login setIsLoggedIn={setIsLoggedIn} />
+        )}
       </div>
     </BabylonManagerContext.Provider>
   );

@@ -13,36 +13,27 @@ function SidebarControl() {
 
 
   useEffect(() => {
-    console.log("...SidebarControl", babylonManager);
-
     if (babylonManager) {
       const newGeometryFactory = new GeometryFactory(babylonManager.scene);
       setGeometryFactory(newGeometryFactory);
-      console.log("Cargado SidebarControl");
-
     } else {
-      console.log("No se ha cargado el babylonManager");
+      console.log("BabylonManager is not loaded");
     }
   }, [babylonManager, isReady]);
 
-  let geometryCreationFunctions;
-
+  let createGeometryFn;
   if (geometryFactory) {
-    console.log('Entrando al bloque donde geometryFactory existe.');
-    geometryCreationFunctions = {
-      [GeometryType.Sphere]: geometryFactory.createSphere.bind(geometryFactory),
-      [GeometryType.Box]: geometryFactory.createBox.bind(geometryFactory),
+    createGeometryFn = {
+      createGeometry: geometryFactory.createGeometry.bind(geometryFactory)
     };
   }
 
-  console.log("geometryCreationFunctions", geometryCreationFunctions)
   return (
     <div>
-      {isReady ? <Browser geometryCreationFunctions={geometryCreationFunctions} /> : 'Cargando...'}
+      {isReady ? <Browser createGeometryFn={createGeometryFn} /> : 'Loading...'}
       <TreeNode />
     </div>
   );
 }
-
 
 export default SidebarControl;

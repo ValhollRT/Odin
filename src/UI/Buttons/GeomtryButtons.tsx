@@ -1,12 +1,19 @@
+// GeometryButton.tsx
 import React from 'react';
+import { GeometryType } from '../../Engine/Geometry/GeometryType';
 
 interface GeometryButtonProps {
-  createGeometry: () => void;
   label: string;
+  type: GeometryType;
+  onClick: (type: GeometryType) => void;
 }
 
-function GeometryButton({ createGeometry, label }: GeometryButtonProps) {
-  return <button onClick={createGeometry}>{label}</button>;
-}
+const GeometryButton: React.FC<GeometryButtonProps> = ({ label, type, onClick }) => {
+  return (
+    <button onClick={() => onClick(type)}>
+      {label}
+    </button>
+  );
+};
 
 export default GeometryButton;
