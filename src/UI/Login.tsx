@@ -8,8 +8,7 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    // Simple check. Replace this with actual authentication logic.
+  const handleLogin = (): void => {
     if (username === 'admin' && password === 'admin') {
       setIsLoggedIn(true);
     } else {
@@ -23,13 +22,17 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
         type="text"
         placeholder="Username"
         value={username}
-        onChange={(e) => setUsername(e.target.value)}
+        onChange={e => {
+          setUsername(e.target.value);
+        }}
       />
       <input
         type="password"
         placeholder="Password"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={e => {
+          setPassword(e.target.value);
+        }}
       />
       <button onClick={handleLogin}>Login</button>
     </div>

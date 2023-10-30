@@ -1,22 +1,22 @@
 // AddSphereButton.tsx
-import React, { MouseEvent } from 'react';
+import React, { type ReactElement, type MouseEvent } from 'react';
 
 interface AddSphereButtonProps {
   addSphere: (() => void) | null;
 }
 
-function AddSphereButton({ addSphere }: AddSphereButtonProps) {
-  const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
-    if (addSphere) {
+function AddSphereButton({ addSphere }: AddSphereButtonProps): ReactElement {
+  const handleClick = (event: MouseEvent<HTMLButtonElement>): void => {
+    if (addSphere != null) {
       addSphere();
     }
   };
 
   return (
-    <button onClick={handleClick} disabled={!addSphere}>
+    <button onClick={handleClick} disabled={addSphere == null}>
       Add Sphere
     </button>
   );
-};
+}
 
 export default AddSphereButton;

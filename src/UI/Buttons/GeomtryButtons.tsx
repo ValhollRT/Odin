@@ -1,6 +1,6 @@
 // GeometryButton.tsx
 import React from 'react';
-import { GeometryType } from '../../Engine/Geometry/GeometryType';
+import { type GeometryType } from '../../Engine/Geometry/GeometryType';
 
 interface GeometryButtonProps {
   label: string;
@@ -8,9 +8,17 @@ interface GeometryButtonProps {
   onClick: (type: GeometryType) => void;
 }
 
-const GeometryButton: React.FC<GeometryButtonProps> = ({ label, type, onClick }) => {
+const GeometryButton: React.FC<GeometryButtonProps> = ({
+  label,
+  type,
+  onClick
+}) => {
   return (
-    <button onClick={() => onClick(type)}>
+    <button
+      onClick={() => {
+        onClick(type);
+      }}
+    >
       {label}
     </button>
   );

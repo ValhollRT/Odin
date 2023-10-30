@@ -1,11 +1,7 @@
 import React from 'react';
 
-function TreeNode() {
-  return (
-    <div>
-      TreeNode content
-    </div>
-  );
+function TreeNode(): React.ReactElement {
+  return <div>TreeNode content</div>;
 }
 
 export default TreeNode;

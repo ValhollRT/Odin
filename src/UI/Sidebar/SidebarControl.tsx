@@ -1,31 +1,32 @@
 // SidebarControl.tsx
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  type ReactElement,
+  useContext,
+  useEffect,
+  useState
+} from 'react';
 import Browser from './Browser';
 import TreeNode from './TreeNode';
 import { GeometryFactory } from '../../Engine/Geometry/GeometryFactory';
-import { GeometryType } from '../../Engine/Geometry/GeometryType';
-import { BabylonManagerContext } from '../../BabylonManagerContext';  // Importa el contexto
+import { BabylonManagerContext } from '../../BabylonManagerContext';
 
-
-function SidebarControl() {
-  const [geometryFactory, setGeometryFactory] = useState<GeometryFactory | null>(null);
+function SidebarControl(): ReactElement {
+  const [geometryFactory, setGeometryFactory] =
+    useState<GeometryFactory | null>(null);
   const { babylonManager, isReady } = useContext(BabylonManagerContext);
 
-
   useEffect(() => {
-    if (babylonManager) {
+    if (babylonManager != null) {
       const newGeometryFactory = new GeometryFactory(babylonManager.scene);
       setGeometryFactory(newGeometryFactory);
     } else {
-      console.log("BabylonManager is not loaded");
+      console.log('BabylonManager is not loaded');
     }
   }, [babylonManager, isReady]);
 
-  let createGeometryFn;
-  if (geometryFactory) {
-    createGeometryFn = {
-      createGeometry: geometryFactory.createGeometry.bind(geometryFactory)
-    };
+  let createGeometryFn = null;
+  if (geometryFactory != null) {
+    createGeometryFn = geometryFactory.createGeometry.bind(geometryFactory);
   }
 
   return (
