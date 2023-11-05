@@ -5,7 +5,10 @@ import React, {
   useEffect,
   useState
 } from 'react';
+import Tabs from '../TabPanel/Tabs';
+import TabPanel from '../TabPanel/TabPanel';
 import Browser from './Browser';
+import GeometryPanel from './GeometryPanel'; // Asumiendo que has creado este componente
 import TreeNode from './TreeNode';
 import { GeometryFactory } from '../../Engine/Geometry/GeometryFactory';
 import { BabylonManagerContext } from '../../BabylonManagerContext';
@@ -33,7 +36,18 @@ function SidebarControl(): ReactElement {
 
   return (
     <div className="sidebar">
-      {isReady ? <Browser createGeometryFn={createGeometryFn} /> : 'Loading...'}
+      {isReady ? (
+        <Tabs>
+          <TabPanel label="Browser">
+            <Browser createGeometryFn={createGeometryFn} />
+          </TabPanel>
+          <TabPanel label="Geometry">
+            <GeometryPanel />
+          </TabPanel>
+        </Tabs>
+      ) : (
+        'Loading...'
+      )}
       <TreeNode />
     </div>
   );

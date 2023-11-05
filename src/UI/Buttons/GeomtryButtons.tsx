@@ -2,7 +2,7 @@
 import React from 'react';
 import { type GeometryType } from '../../Engine/Geometry/GeometryType';
 import styles from '../../styles/geometry-button.module.scss';
-import geometryIcon from '../../images/icons/geometry.svg';
+import geometryIcon from '../../images/icons/geometry/box.svg';
 
 interface GeometryButtonProps {
   label: string;
