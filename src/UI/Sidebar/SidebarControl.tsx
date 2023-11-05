@@ -7,8 +7,8 @@ import React, {
 } from 'react';
 import Tabs from '../TabPanel/Tabs';
 import TabPanel from '../TabPanel/TabPanel';
-import Browser from './Browser';
-import GeometryPanel from './GeometryPanel'; // Asumiendo que has creado este componente
+import GeometryPanel from './GeometryPanel';
+import BrowserPanel from './BrowserPanel'; // Asumiendo que has creado este componente
 import TreeNode from './TreeNode';
 import { GeometryFactory } from '../../Engine/Geometry/GeometryFactory';
 import { BabylonManagerContext } from '../../BabylonManagerContext';
@@ -39,10 +39,10 @@ function SidebarControl(): ReactElement {
       {isReady ? (
         <Tabs>
           <TabPanel label="Browser">
-            <Browser createGeometryFn={createGeometryFn} />
+            <BrowserPanel />
           </TabPanel>
           <TabPanel label="Geometry">
-            <GeometryPanel />
+            <GeometryPanel createGeometryFn={createGeometryFn} />
           </TabPanel>
         </Tabs>
       ) : (
