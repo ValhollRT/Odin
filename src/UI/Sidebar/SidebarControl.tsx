@@ -9,6 +9,8 @@ import Browser from './Browser';
 import TreeNode from './TreeNode';
 import { GeometryFactory } from '../../Engine/Geometry/GeometryFactory';
 import { BabylonManagerContext } from '../../BabylonManagerContext';
+import log from '../../logConfig';
+import '../../styles/styles.scss';
 
 function SidebarControl(): ReactElement {
   const [geometryFactory, setGeometryFactory] =
@@ -20,7 +22,7 @@ function SidebarControl(): ReactElement {
       const newGeometryFactory = new GeometryFactory(babylonManager.scene);
       setGeometryFactory(newGeometryFactory);
     } else {
-      console.log('BabylonManager is not loaded');
+      log.debug('BabylonManager is not loaded');
     }
   }, [babylonManager, isReady]);
 
@@ -30,7 +32,7 @@ function SidebarControl(): ReactElement {
   }
 
   return (
-    <div>
+    <div className="sidebar">
       {isReady ? <Browser createGeometryFn={createGeometryFn} /> : 'Loading...'}
       <TreeNode />
     </div>

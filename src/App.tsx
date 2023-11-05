@@ -5,6 +5,7 @@ import SidebarControl from './UI/Sidebar/SidebarControl';
 import { BabylonManagerContext } from './BabylonManagerContext';
 import { type BabylonManager } from './Engine/Geometry/BabylonManager';
 import Login from './UI/Login';
+import './styles/styles.scss';
 
 function App(): ReactElement {
   const [isViewportReady, setIsViewportReady] = useState(false);
@@ -25,9 +26,9 @@ function App(): ReactElement {
     >
       <div className="App">
         {!isLoggedIn ? (
-          <div>
-            <Viewport onReady={onReady} />
+          <div className="App-content">
             {isViewportReady && <SidebarControl />}
+            <Viewport onReady={onReady} />
           </div>
         ) : (
           <Login setIsLoggedIn={setIsLoggedIn} />

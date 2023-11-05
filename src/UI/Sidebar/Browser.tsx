@@ -1,6 +1,7 @@
 import { type ReactElement } from 'react';
 import { GeometryType } from '../../Engine/Geometry/GeometryType';
 import GeometryButton from '../Buttons/GeomtryButtons';
+import styles from '../../styles/browser.module.scss';
 
 type CreateGeometryFnType = ((type: GeometryType) => void) | null;
 
@@ -18,7 +19,7 @@ function Browser({ createGeometryFn }: BrowserProps): ReactElement {
   };
 
   return (
-    <div>
+    <div className={styles['browser-grid']}>
       {Object.keys(GeometryType)
         .filter(k => isNaN(Number(k)))
         .map(key => {

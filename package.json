@@ -11,6 +11,8 @@
     "@types/react": "^18.2.6",
     "@types/react-dom": "^18.2.4",
     "babylonjs": "^6.4.1",
+    "loglevel": "^1.8.1",
+    "node-sass": "^7.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",

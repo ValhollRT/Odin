@@ -1,6 +1,8 @@
 // GeometryButton.tsx
 import React from 'react';
 import { type GeometryType } from '../../Engine/Geometry/GeometryType';
+import styles from '../../styles/geometry-button.module.scss';
+import geometryIcon from '../../images/icons/geometry.svg';
 
 interface GeometryButtonProps {
   label: string;
@@ -15,11 +17,13 @@ const GeometryButton: React.FC<GeometryButtonProps> = ({
 }) => {
   return (
     <button
+      className={styles['geometry-button']}
       onClick={() => {
         onClick(type);
       }}
     >
-      {label}
+      <img src={geometryIcon} alt={label} />
+      <span>{label}</span>
     </button>
   );
 };

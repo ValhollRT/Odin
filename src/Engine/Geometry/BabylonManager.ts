@@ -6,6 +6,7 @@ import {
   HemisphericLight,
   Vector3
 } from 'babylonjs';
+import log from '../../logConfig';
 
 export class BabylonManager {
   private static instance: BabylonManager;
@@ -30,7 +31,7 @@ export class BabylonManager {
       this.scene
     );
 
-    console.log('BabylonManager created' + defaultLight.name);
+    log.debug('BabylonManager created ' + defaultLight.name);
     this.engine.runRenderLoop(() => {
       this.scene.render();
     });

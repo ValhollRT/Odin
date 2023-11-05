@@ -1,8 +1,7 @@
-// Viewport.tsx
 import React, { useEffect, useRef } from 'react';
 import { BabylonManager } from '../../Engine/Geometry/BabylonManager';
-
-// Viewport.tsx
+import log from '../../logConfig';
+import '../../styles/styles.scss';
 
 interface ViewportProps {
   onReady: (manager: BabylonManager) => void;
@@ -13,19 +12,19 @@ function Viewport({ onReady }: ViewportProps): React.ReactElement {
 
   useEffect(() => {
     if (canvasRef.current) {
-      console.log('Cargado Viewport', canvasRef.current);
+      log.debug('Cargado Viewport', canvasRef.current);
       const manager = BabylonManager.getInstance(canvasRef.current);
       onReady(manager);
       return () => {
         manager.dispose();
       };
     } else {
-      console.log('No se ha cargado el canvasRef');
+      log.debug('No se ha cargado el canvasRef');
     }
   }, []);
 
   return (
-    <div>
+    <div className="viewport">
       <canvas
         ref={canvasRef}
         id="renderCanvas"
