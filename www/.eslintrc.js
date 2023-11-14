@@ -20,6 +20,7 @@ module.exports = {
         "@typescript-eslint/triple-slash-reference": "off",
       },
       parserOptions: {
+        tsconfigRootDir: __dirname,
         sourceType: "script",
         project: "./tsconfig.json",
       },
@@ -31,6 +32,7 @@ module.exports = {
     },
   },
   parserOptions: {
+    tsconfigRootDir: __dirname,
     ecmaVersion: "latest",
     sourceType: "script",
     project: "./tsconfig.json",
