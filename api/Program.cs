@@ -1,12 +1,12 @@
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-builder.Services.AddCors(options => 
+builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
         builder.WithOrigins("http://localhost:3000")
@@ -19,6 +19,11 @@ builder.Services.AddSpaStaticFiles(configuration =>
 {
     configuration.RootPath = "../www/build";
 });
+
+
+builder.Services.AddScoped<UserBridge>();
+
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
@@ -42,6 +47,8 @@ app.UseRouting();
 app.UseCors("MyPolicy");
 
 app.UseAuthorization();
+
+app.UseMiddleware<JsonRpcMiddleware>();
 
 app.MapControllers();
 
