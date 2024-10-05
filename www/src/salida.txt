@@ -1,0 +1,1013 @@
+---- /home/sparanzza/Code/valhollrt/odin/www/src/global.css ----
+:root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --ring: 215 20.2% 65.1%;
+    --radius: 0.5rem;
+  }
+  
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+  
+  * {
+    box-sizing: border-box;
+  }
+
+---- /home/sparanzza/Code/valhollrt/odin/www/src/index.css ----
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+
+---- /home/sparanzza/Code/valhollrt/odin/www/src/setupTests.ts ----
+// jest-dom adds custom jest matchers for asserting on DOM nodes.
+// allows you to do things like:
+// expect(element).toHaveTextContent(/react/i)
+// learn more: https://github.com/testing-library/jest-dom
+import '@testing-library/jest-dom';
+
+
+---- /home/sparanzza/Code/valhollrt/odin/www/src/reportWebVitals.ts ----
+import { ReportHandler } from 'web-vitals';
+
+const reportWebVitals = (onPerfEntry?: ReportHandler) => {
+  if (onPerfEntry && onPerfEntry instanceof Function) {
+    import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+      getCLS(onPerfEntry);
+      getFID(onPerfEntry);
+      getFCP(onPerfEntry);
+      getLCP(onPerfEntry);
+      getTTFB(onPerfEntry);
+    });
+  }
+};
+
+export default reportWebVitals;
+
+
+---- /home/sparanzza/Code/valhollrt/odin/www/src/index.tsx ----
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import reportWebVitals from './reportWebVitals';
+import MainWindow from './components/MainWindow';
+import { AppProvider } from './context/AppContext';
+
+const root = ReactDOM.createRoot(
+  document.getElementById('root') as HTMLElement
+);
+root.render(
+  <React.StrictMode>
+    <AppProvider>
+      <MainWindow />
+    </AppProvider>
+  </React.StrictMode>
+);
+
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();
+
+
+---- /home/sparanzza/Code/valhollrt/odin/www/src/react-app-env.d.ts ----
+/// <reference types="react-scripts" />
+
+
+---- /home/sparanzza/Code/valhollrt/odin/www/src/context/AppContext.tsx ----
+import { type Scene } from '@babylonjs/core';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  type ReactNode
+} from 'react';
+
+export interface Geometry {
+  id: number;
+  type: string;
+  color?: string;
+  meshName: string;
+  parentId?: number;
+  children: number[];
+  isExpanded: boolean;
+}
+
+interface AppContextType {
+  scene: Scene | null;
+  setScene: (scene: Scene | null) => void;
+  geometries: Geometry[];
+  setGeometries: React.Dispatch<React.SetStateAction<Geometry[]>>;
+  selectedGeometries: number[];
+  setSelectedGeometries: React.Dispatch<React.SetStateAction<number[]>>;
+}
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
+export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const [scene, setScene] = useState<Scene | null>(null);
+  const [geometries, setGeometries] = useState<Geometry[]>([]);
+  const [selectedGeometries, setSelectedGeometries] = useState<number[]>([]);
+
+  return (
+    <AppContext.Provider
+      value={{
+        scene,
+        setScene,
+        geometries,
+        setGeometries,
+        selectedGeometries,
+        setSelectedGeometries
+      }}
+    >
+      {children}
+    </AppContext.Provider>
+  );
+};
+
+export const useAppContext = () => {
+  const context = useContext(AppContext);
+  if (context === undefined) {
+    throw new Error('useAppContext must be used within an AppProvider');
+  }
+  return context;
+};
+
+
+---- /home/sparanzza/Code/valhollrt/odin/www/src/components/GeometryCreator.tsx ----
+import { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { MeshBuilder } from '@babylonjs/core';
+import { useAppContext } from '../context/AppContext';
+import { Button } from './ui/Button';
+
+type GeometryType = 'sphere' | 'cube' | 'cylinder' | 'cone' | 'torus';
+
+const colors = [
+  { name: 'Rojo', hex: '#FF0000' },
+  { name: 'Verde', hex: '#00FF00' },
+  { name: 'Azul', hex: '#0000FF' },
+  { name: 'Amarillo', hex: '#FFFF00' },
+  { name: 'Magenta', hex: '#FF00FF' },
+  { name: 'Cian', hex: '#00FFFF' }
+];
+
+const GeometryCreator = () => {
+  const [activeTab, setActiveTab] = useState('geometries');
+  const { scene, setGeometries } = useAppContext();
+
+  const createGeometry = (type: GeometryType) => {
+    if (!scene) return;
+
+    const id = Date.now();
+    const meshName = `${type}-${id}`;
+    let mesh;
+
+    switch (type) {
+      case 'sphere':
+        mesh = MeshBuilder.CreateSphere(meshName, { diameter: 5 }, scene);
+        break;
+      case 'cube':
+        mesh = MeshBuilder.CreateBox(meshName, { size: 5 }, scene);
+        break;
+      case 'cylinder':
+        mesh = MeshBuilder.CreateCylinder(
+          meshName,
+          { height: 5, diameter: 5 },
+          scene
+        );
+        break;
+      case 'cone':
+        mesh = MeshBuilder.CreateCylinder(
+          meshName,
+          { height: 5, diameterTop: 0, diameterBottom: 5 },
+          scene
+        );
+        break;
+      case 'torus':
+        mesh = MeshBuilder.CreateTorus(
+          meshName,
+          { thickness: 1, diameter: 5 },
+          scene
+        );
+        break;
+    }
+
+    mesh.position.x = (Math.random() - 0.5) * 20;
+    mesh.position.z = (Math.random() - 0.5) * 20;
+    mesh.position.y = 2.5;
+
+    setGeometries(prev => [
+      ...prev,
+      { id, type, meshName, children: [], isExpanded: true }
+    ]);
+  };
+
+  const handleDragStart = (e: React.DragEvent, type: GeometryType) => {
+    e.dataTransfer.setData('geometryType', type);
+  };
+
+  const handleColorDragStart = (e: React.DragEvent, color: string) => {
+    e.dataTransfer.setData('color', color);
+  };
+
+  return (
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="geometries">Geometrías</TabsTrigger>
+        <TabsTrigger value="materials">Materiales</TabsTrigger>
+      </TabsList>
+      <TabsContent value="geometries" className="space-y-4">
+        <h3 className="text-lg font-semibold mb-2">Crear Geometrías</h3>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            draggable
+            onDragStart={e => {
+              handleDragStart(e, 'sphere');
+            }}
+            onClick={() => {
+              createGeometry('sphere');
+            }}
+          >
+            Esfera
+          </Button>
+          <Button
+            draggable
+            onDragStart={e => {
+              handleDragStart(e, 'cube');
+            }}
+            onClick={() => {
+              createGeometry('cube');
+            }}
+          >
+            Cubo
+          </Button>
+          <Button
+            draggable
+            onDragStart={e => {
+              handleDragStart(e, 'cylinder');
+            }}
+            onClick={() => {
+              createGeometry('cylinder');
+            }}
+          >
+            Cilindro
+          </Button>
+          <Button
+            draggable
+            onDragStart={e => {
+              handleDragStart(e, 'cone');
+            }}
+            onClick={() => {
+              createGeometry('cone');
+            }}
+          >
+            Cono
+          </Button>
+          <Button
+            draggable
+            onDragStart={e => {
+              handleDragStart(e, 'torus');
+            }}
+            onClick={() => {
+              createGeometry('torus');
+            }}
+          >
+            Toro
+          </Button>
+        </div>
+      </TabsContent>
+      <TabsContent value="materials" className="space-y-4">
+        <h3 className="text-lg font-semibold mb-2">Paleta de Colores</h3>
+        <div className="grid grid-cols-3 gap-2">
+          {colors.map(color => (
+            <Button
+              key={color.hex}
+              draggable
+              onDragStart={e => {
+                handleColorDragStart(e, color.hex);
+              }}
+              style={{ backgroundColor: color.hex, color: '#000000' }}
+            >
+              {color.name}
+            </Button>
+          ))}
+        </div>
+      </TabsContent>
+    </Tabs>
+  );
+};
+
+export default GeometryCreator;
+
+---- /home/sparanzza/Code/valhollrt/odin/www/src/components/MainWindow.tsx ----
+import { useEffect, useRef } from 'react';
+import {
+  Engine,
+  Scene,
+  FreeCamera,
+  Vector3,
+  HemisphericLight,
+  MeshBuilder,
+  Color3,
+} from '@babylonjs/core';
+import GeometryCreator from './GeometryCreator';
+import GeometryDropZone from './GeometryDropZone';
+import { useAppContext } from '../context/AppContext';
+import EmptyComponent from './EmptyComponent';
+import { GridMaterial } from '@babylonjs/materials';
+
+import './MainWindow.css'
+
+export default function MainWindow() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { setScene } = useAppContext();
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      const engine = new Engine(canvasRef.current, true);
+      const newScene = new Scene(engine);
+
+      // Cámara
+      const camera = new FreeCamera(
+        'camera1',
+        new Vector3(0, 50, -50),
+        newScene
+      );
+      camera.setTarget(new Vector3(0, 0, 20));
+      camera.attachControl(canvasRef.current, true);
+
+      // Luz
+      const light = new HemisphericLight(
+        'light1',
+        new Vector3(0, 1, 0),
+        newScene
+      );
+      light.groundColor = new Color3(0.5, 0.5, 0.5);
+      light.intensity = 0.7;
+
+      // Material del suelo (grid)
+      const groundMaterial = new GridMaterial('groundMaterial', newScene);
+      groundMaterial.majorUnitFrequency = 5;
+      groundMaterial.minorUnitVisibility = 0.45;
+      groundMaterial.gridRatio = 1;
+      groundMaterial.backFaceCulling = false;
+      groundMaterial.mainColor = new Color3(1, 1, 1);
+      groundMaterial.lineColor = new Color3(1.0, 1.0, 1.0);
+      groundMaterial.opacity = 0.98;
+
+      // Suelo
+      const ground = MeshBuilder.CreateGround(
+        'ground1',
+        { width: 200, height: 200, subdivisions: 2 },
+        newScene
+      );
+      ground.material = groundMaterial;
+
+      engine.runRenderLoop(() => {
+        newScene.render();
+      });
+
+      const resizeHandler = () => {
+        engine.resize();
+      };
+
+      window.addEventListener('resize', resizeHandler);
+
+      setScene(newScene);
+
+      return () => {
+        window.removeEventListener('resize', resizeHandler);
+        engine.dispose();
+      };
+    }
+  }, [setScene]);
+
+  return (
+    <div className="main-window">
+      <div className="component">
+        <h2>Component 1: Geometry and Material Creator</h2>
+        <GeometryCreator />
+      </div>
+      <EmptyComponent title="Component 2" />
+      <GeometryDropZone />
+      <div className="canvas-container">
+        <canvas ref={canvasRef} />
+      </div>
+    </div>
+  );
+}
+
+
+---- /home/sparanzza/Code/valhollrt/odin/www/src/components/GeometryDropZone.tsx ----
+'use client';
+
+import { useEffect, useState } from 'react';
+import {
+  MeshBuilder,
+  StandardMaterial,
+  Color3,
+  HighlightLayer
+} from '@babylonjs/core';
+import { ChevronRight, ChevronDown } from 'lucide-react';
+import { useAppContext, Geometry } from '../context/AppContext';
+
+const GeometryDropZone = () => {
+  const {
+    scene,
+    geometries,
+    setGeometries,
+    selectedGeometries,
+    setSelectedGeometries
+  } = useAppContext();
+  const [highlightLayer, setHighlightLayer] = useState<HighlightLayer | null>(
+    null
+  );
+
+  useEffect(() => {
+    if (scene) {
+      const newHighlightLayer = new HighlightLayer('highlightLayer', scene);
+      setHighlightLayer(newHighlightLayer);
+
+      return () => {
+        newHighlightLayer.dispose();
+      };
+    }
+  }, [scene]);
+
+  const handleDrop = (e: React.DragEvent, targetGeometryId?: number) => {
+    e.preventDefault();
+    const geometryType = e.dataTransfer.getData('geometryType');
+    const color = e.dataTransfer.getData('color');
+    const draggedGeometryId = e.dataTransfer.getData('geometryId');
+
+    if (geometryType) {
+      const newGeometry = createGeometry(geometryType, targetGeometryId);
+      if (newGeometry) {
+        setGeometries(prev => [...prev, newGeometry]);
+      }
+    } else if (color && targetGeometryId !== undefined) {
+      applyColor(targetGeometryId, color);
+    } else if (draggedGeometryId && targetGeometryId !== undefined) {
+      reorganizeGeometries(parseInt(draggedGeometryId), targetGeometryId);
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent, geometryId: number) => {
+    e.dataTransfer.setData('geometryId', geometryId.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const createGeometry = (type: string, parentId?: number): Geometry | null => {
+    if (!scene) return null;
+
+    const id = Date.now();
+    const meshName = `${type}-${id}`;
+    let mesh;
+
+    switch (type) {
+      case 'sphere':
+        mesh = MeshBuilder.CreateSphere(meshName, { diameter: 5 }, scene);
+        break;
+      case 'cube':
+        mesh = MeshBuilder.CreateBox(meshName, { size: 5 }, scene);
+        break;
+      case 'cylinder':
+        mesh = MeshBuilder.CreateCylinder(
+          meshName,
+          { height: 5, diameter: 5 },
+          scene
+        );
+        break;
+      case 'cone':
+        mesh = MeshBuilder.CreateCylinder(
+          meshName,
+          { height: 5, diameterTop: 0, diameterBottom: 5 },
+          scene
+        );
+        break;
+      case 'torus':
+        mesh = MeshBuilder.CreateTorus(
+          meshName,
+          { thickness: 1, diameter: 5 },
+          scene
+        );
+        break;
+      default:
+        return null;
+    }
+
+    if (parentId) {
+      const parentMesh = scene.getMeshByName(
+        geometries.find(g => g.id === parentId)?.meshName || ''
+      );
+      if (parentMesh) {
+        mesh.parent = parentMesh;
+      }
+    } else {
+      mesh.position.x = (Math.random() - 0.5) * 20;
+      mesh.position.z = (Math.random() - 0.5) * 20;
+      mesh.position.y = 2.5;
+    }
+
+    return { id, type, meshName, children: [], isExpanded: true, parentId };
+  };
+
+  const applyColor = (geometryId: number, color: string) => {
+    if (!scene) return;
+
+    setGeometries(prev =>
+      prev.map(g => {
+        if (g.id === geometryId) {
+          const mesh = scene.getMeshByName(g.meshName);
+          if (mesh) {
+            const material = new StandardMaterial(`material-${g.id}`, scene);
+            material.diffuseColor = Color3.FromHexString(color);
+            mesh.material = material;
+          }
+          return { ...g, color };
+        }
+        return g;
+      })
+    );
+  };
+
+  const handleGeometryClick = (geometryId: number, event: React.MouseEvent) => {
+    if (!scene || !highlightLayer) return;
+
+    if (event.ctrlKey || event.metaKey) {
+      // Multi-selección
+      setSelectedGeometries(prev =>
+        prev.includes(geometryId)
+          ? prev.filter(id => id !== geometryId)
+          : [...prev, geometryId]
+      );
+    } else {
+      // Selección única
+      setSelectedGeometries([geometryId]);
+    }
+
+    updateHighlight();
+  };
+
+  const updateHighlight = () => {
+    if (!scene || !highlightLayer) return;
+
+    highlightLayer.removeAllMeshes();
+    selectedGeometries.forEach(id => {
+      const mesh = scene.getMeshByName(
+        geometries.find(g => g.id === id)?.meshName || ''
+      );
+      if (mesh) {
+        highlightLayer.addMesh(mesh as any, Color3.Yellow());
+      }
+    });
+  };
+
+  const reorganizeGeometries = (draggedId: number, targetId: number) => {
+    setGeometries(prev => {
+      const newGeometries = [...prev];
+      const draggedIndex = newGeometries.findIndex(g => g.id === draggedId);
+      const targetIndex = newGeometries.findIndex(g => g.id === targetId);
+
+      if (draggedIndex !== -1 && targetIndex !== -1) {
+        const [draggedGeometry] = newGeometries.splice(draggedIndex, 1);
+        draggedGeometry.parentId = targetId;
+        newGeometries[targetIndex].children.push(draggedId);
+        newGeometries.splice(targetIndex + 1, 0, draggedGeometry);
+      }
+
+      return newGeometries;
+    });
+
+    if (scene) {
+      const draggedMesh = scene.getMeshByName(
+        geometries.find(g => g.id === draggedId)?.meshName || ''
+      );
+      const targetMesh = scene.getMeshByName(
+        geometries.find(g => g.id === targetId)?.meshName || ''
+      );
+      if (draggedMesh && targetMesh) {
+        draggedMesh.parent = targetMesh;
+      }
+    }
+  };
+
+  const toggleExpand = (geometryId: number) => {
+    setGeometries(prev =>
+      prev.map(g =>
+        g.id === geometryId ? { ...g, isExpanded: !g.isExpanded } : g
+      )
+    );
+  };
+
+  const renderGeometryItem = (geometry: Geometry, level: number = 0) => {
+    const hasChildren = geometry.children.length > 0;
+    const childGeometries = geometries.filter(g => g.parentId === geometry.id);
+
+    return (
+      <div key={geometry.id} style={{ marginLeft: `${level * 20}px` }}>
+        <div
+          className={`mb-2 p-2 rounded cursor-pointer transition-colors duration-200 ${
+            selectedGeometries.includes(geometry.id)
+              ? 'bg-yellow-200'
+              : 'bg-gray-100 hover:bg-gray-200'
+          }`}
+          draggable
+          onDragStart={e => handleDragStart(e, geometry.id)}
+          onDrop={e => handleDrop(e, geometry.id)}
+          onDragOver={handleDragOver}
+          onClick={e => handleGeometryClick(geometry.id, e)}
+        >
+          <div className="flex items-center">
+            {hasChildren && (
+              <button
+                onClick={() => toggleExpand(geometry.id)}
+                className="mr-2"
+              >
+                {geometry.isExpanded ? (
+                  <ChevronDown size={16} />
+                ) : (
+                  <ChevronRight size={16} />
+                )}
+              </button>
+            )}
+            <h3>{geometry.type}</h3>
+          </div>
+          {geometry.color && <p>Color: {geometry.color}</p>}
+        </div>
+        {hasChildren &&
+          geometry.isExpanded &&
+          childGeometries.map(child => renderGeometryItem(child, level + 1))}
+      </div>
+    );
+  };
+
+  return (
+    <div
+      onDrop={e => handleDrop(e)}
+      onDragOver={handleDragOver}
+      className="bg-white rounded-lg shadow-md p-4 h-full overflow-auto"
+    >
+      <h2 className="text-xl font-bold mb-4">Geometrías Creadas</h2>
+      {geometries
+        .filter(g => !g.parentId)
+        .map(geometry => renderGeometryItem(geometry))}
+    </div>
+  );
+}
+
+export default GeometryDropZone;
+
+---- /home/sparanzza/Code/valhollrt/odin/www/src/components/MainWindow.css ----
+.main-window {
+    height: 100vh;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: #f7fafc;
+  }
+  
+  .component {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    padding: 1rem;
+  }
+  
+  .component h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  
+  .canvas-container {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+  }
+  
+  .canvas-container canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+---- /home/sparanzza/Code/valhollrt/odin/www/src/components/EmptyComponent.tsx ----
+interface EmptyComponentProps {
+  title: string;
+}
+
+const EmptyComponent = ({ title }: EmptyComponentProps) => {
+  return (
+    <div className="bg-white rounded-lg shadow-md p-4">
+      <h2 className="text-lg font-semibold mb-2">{title}</h2>
+      <p className="text-gray-600">
+        Este es un componente vacío para futura implementación.
+      </p>
+    </div>
+  );
+};
+
+export default EmptyComponent;
+
+
+---- /home/sparanzza/Code/valhollrt/odin/www/src/components/ui/tabs.css ----
+.tabs-list {
+    display: inline-flex;
+    height: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.375rem;
+    background-color: #f7fafc;
+    padding: 0.25rem;
+    color: #4a5568;
+  }
+  
+  .tabs-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    border-radius: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  
+  .tabs-trigger:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.5);
+  }
+  
+  .tabs-trigger[data-state="active"] {
+    background-color: white;
+    color: #2d3748;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  }
+  
+  .tabs-content {
+    margin-top: 0.5rem;
+  }
+  
+  .tabs-content:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.5);
+  }
+
+---- /home/sparanzza/Code/valhollrt/odin/www/src/components/ui/Button.css ----
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background-color 0.2s, color 0.2s;
+    cursor: pointer;
+  }
+  
+  .button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.5);
+  }
+  
+  .button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  /* Variants */
+  .button.default {
+    background-color: #3182ce;
+    color: white;
+  }
+  
+  .button.default:hover {
+    background-color: #2c5282;
+  }
+  
+  .button.destructive {
+    background-color: #e53e3e;
+    color: white;
+  }
+  
+  .button.destructive:hover {
+    background-color: #c53030;
+  }
+  
+  .button.outline {
+    background-color: transparent;
+    border: 1px solid #e2e8f0;
+    color: #4a5568;
+  }
+  
+  .button.outline:hover {
+    background-color: #edf2f7;
+  }
+  
+  .button.secondary {
+    background-color: #edf2f7;
+    color: #4a5568;
+  }
+  
+  .button.secondary:hover {
+    background-color: #e2e8f0;
+  }
+  
+  .button.ghost {
+    background-color: transparent;
+    color: #4a5568;
+  }
+  
+  .button.ghost:hover {
+    background-color: #edf2f7;
+  }
+  
+  .button.link {
+    background-color: transparent;
+    color: #3182ce;
+    text-decoration: underline;
+  }
+  
+  .button.link:hover {
+    text-decoration: none;
+  }
+  
+  /* Sizes */
+  .button.default {
+    height: 2.5rem;
+    padding: 0.5rem 1rem;
+  }
+  
+  .button.sm {
+    height: 2.25rem;
+    padding: 0.375rem 0.75rem;
+  }
+  
+  .button.lg {
+    height: 2.75rem;
+    padding: 0.75rem 1.5rem;
+  }
+  
+  .button.icon {
+    height: 2.5rem;
+    width: 2.5rem;
+    padding: 0;
+  }
+
+---- /home/sparanzza/Code/valhollrt/odin/www/src/components/ui/tabs.tsx ----
+import * as React from 'react';
+import * as TabsPrimitive from '@radix-ui/react-tabs';
+import './tabs.css';
+
+const Tabs = TabsPrimitive.Root;
+
+const TabsList = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.List>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.List
+    ref={ref}
+    className={`tabs-list ${className || ''}`}
+    {...props}
+  />
+));
+TabsList.displayName = TabsPrimitive.List.displayName;
+
+const TabsTrigger = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.Trigger
+    ref={ref}
+    className={`tabs-trigger ${className || ''}`}
+    {...props}
+  />
+));
+TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
+
+const TabsContent = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.Content
+    ref={ref}
+    className={`tabs-content ${className || ''}`}
+    {...props}
+  />
+));
+TabsContent.displayName = TabsPrimitive.Content.displayName;
+
+export { Tabs, TabsList, TabsTrigger, TabsContent };
+
+
+---- /home/sparanzza/Code/valhollrt/odin/www/src/components/ui/Button.tsx ----
+import * as React from 'react';
+import { Slot } from '@radix-ui/react-slot';
+import './Button.css';
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean;
+  variant?:
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost'
+    | 'link';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      className,
+      variant = 'default',
+      size = 'default',
+      asChild = false,
+      ...props
+    },
+    ref
+  ) => {
+    const Comp = asChild ? Slot : 'button';
+    return (
+      <Comp
+        className={`button ${variant} ${size} ${className ?? ''}`}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
+Button.displayName = 'Button';
+
+export { Button };
+
+
+---- /home/sparanzza/Code/valhollrt/odin/www/src/app/layout.tsx ----
+import { AppProvider } from '../context/AppContext';
+import { Icon } from 'lucide-react';
+
+import './globals.css';
+
+export const metadata = {
+  title: '3D Babylon.js Project',
+  description: 'A 3D application using Babylon.js and React'
+};
+
+export default function RootLayout({
+  children
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body> 
+        <AppProvider>
+          <Icon name="aperture" iconNode={[]} /> 
+          {children}
+        </AppProvider>
+      </body>
+    </html>
+  );
+}
+

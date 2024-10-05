@@ -1,9 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 import reportWebVitals from './reportWebVitals';
 import MainWindow from './components/MainWindow';
 import { AppProvider } from './context/AppContext';
+
+import './styles.css';
+
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement

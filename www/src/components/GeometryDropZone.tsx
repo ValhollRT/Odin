@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 import {
   MeshBuilder,
@@ -248,7 +246,7 @@ const GeometryDropZone = () => {
     <div
       onDrop={e => handleDrop(e)}
       onDragOver={handleDragOver}
-      className="bg-white rounded-lg shadow-md p-4 h-full overflow-auto"
+      className="component"
     >
       <h2 className="text-xl font-bold mb-4">Geometrías Creadas</h2>
       {geometries
