@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useRef } from 'react';
 import {
   Engine,
@@ -9,12 +7,14 @@ import {
   HemisphericLight,
   MeshBuilder,
   Color3,
-} from 'babylonjs';
+} from '@babylonjs/core';
 import GeometryCreator from './GeometryCreator';
 import GeometryDropZone from './GeometryDropZone';
 import { useAppContext } from '../context/AppContext';
 import EmptyComponent from './EmptyComponent';
-import { GridMaterial } from 'babylonjs-materials';
+import { GridMaterial } from '@babylonjs/materials';
+
+import './MainWindow.css'
 
 export default function MainWindow() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -81,17 +81,15 @@ export default function MainWindow() {
   }, [setScene]);
 
   return (
-    <div className="h-screen w-full grid grid-cols-2 grid-rows-2 gap-2 p-2 bg-gray-100">
-      <div className="bg-white rounded-lg shadow-md overflow-hidden p-4">
-        <h2 className="text-xl font-bold mb-4">
-          Componente 1: Creador de Geometrías y Materiales
-        </h2>
+    <div className="main-window">
+      <div className="component">
+        <h2>Component 1: Geometry and Material Creator</h2>
         <GeometryCreator />
       </div>
-      <EmptyComponent title="Componente 2" />
+      <EmptyComponent title="Component 2" />
       <GeometryDropZone />
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <canvas ref={canvasRef} className="w-full h-full" />
+      <div className="canvas-container">
+        <canvas ref={canvasRef} />
       </div>
     </div>
   );

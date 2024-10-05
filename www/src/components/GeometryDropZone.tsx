@@ -6,7 +6,7 @@ import {
   StandardMaterial,
   Color3,
   HighlightLayer
-} from 'babylonjs';
+} from '@babylonjs/core';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import { useAppContext, Geometry } from '../context/AppContext';
 

@@ -1,41 +1,37 @@
 {
-  "name": "odin-react",
+  "name": "odin-rt",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "dependencies": {
     "@babylonjs/core": "^7.28.0",
+    "@babylonjs/materials": "^7.28.0",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-tabs": "^1.1.1",
-    "@testing-library/jest-dom": "^6.5.0",
-    "@testing-library/react": "^16.0.1",
-    "@testing-library/user-event": "^14.5.2",
-    "@types/jest": "^29.5.13",
-    "@types/node": "^22.7.4",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.112",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.0",
-    "babylonjs": "^7.28.0",
-    "babylonjs-materials": "^7.28.0",
-    "loglevel": "^1.9.2",
     "lucide-react": "^0.447.0",
-    "next": "^14.2.14",
-    "node-sass": "^9.0.0",
     "react": "^18.3.1",
-    "react-dnd": "^16.0.1",
-    "react-dnd-html5-backend": "^16.0.1",
-    "react-dom": "^18.3",
+    "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
-    "react-tabs": "^6.0.2",
-    "web-vitals": "^4.2.3"
+    "typescript": "^4.9.5",
+    "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "lint": "eslint 'src/**/*.{ts,tsx}' --quiet",
-    "lint:fix": "eslint 'src/**/*.{ts,tsx}' --quiet --fix",
-    "babel": "babel src -d build"
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
   },
   "browserslist": {
     "production": [
@@ -48,22 +44,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@babel/core": "^7.25.7",
-    "@babel/preset-env": "^7.25.7",
-    "@babel/preset-react": "^7.25.7",
-    "@typescript-eslint/eslint-plugin": "^6.8.0",
-    "@typescript-eslint/parser": "^6.8.0",
-    "eslint": "^8.0.0",
-    "eslint-config-prettier": "^8.0.0",
-    "eslint-config-standard-with-typescript": "^39.1.1",
-    "eslint-plugin-babel": "^5.3.1",
-    "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-n": "^16.0.0",
-    "eslint-plugin-prettier": "^5.2.1",
-    "eslint-plugin-promise": "^6.0.0",
-    "eslint-plugin-react": "^7.37.1",
-    "typescript": "4.9.5"
   }
 }

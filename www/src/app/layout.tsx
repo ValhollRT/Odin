@@ -1,8 +1,7 @@
 import { AppProvider } from '../context/AppContext';
-import { Inter } from 'next/font/google';
-import './globals.css';
+import { Icon } from 'lucide-react';
 
-const inter = Inter({ subsets: ['latin'] });
+import './globals.css';
 
 export const metadata = {
   title: '3D Babylon.js Project',
@@ -16,8 +15,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <AppProvider>{children}</AppProvider>
+      <body> 
+        <AppProvider>
+          <Icon name="aperture" iconNode={[]} /> 
+          {children}
+        </AppProvider>
       </body>
     </html>
   );

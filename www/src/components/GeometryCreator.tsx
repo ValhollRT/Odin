@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { MeshBuilder } from 'babylonjs';
+import { MeshBuilder } from '@babylonjs/core';
 import { useAppContext } from '../context/AppContext';
 import { Button } from './ui/Button';
 

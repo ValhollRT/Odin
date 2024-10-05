@@ -1,4 +1,4 @@
-import { type Scene } from 'babylonjs';
+import { type Scene } from '@babylonjs/core';
 import React, {
   createContext,
   useContext,
