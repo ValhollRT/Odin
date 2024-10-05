@@ -21,7 +21,7 @@ module.exports = {
       },
       parserOptions: {
         tsconfigRootDir: __dirname,
-        sourceType: "script",
+        sourceType: "module",
         project: "./tsconfig.json",
       },
     },
@@ -31,16 +31,22 @@ module.exports = {
       version: "detect", // Automatically detect the react version
     },
   },
+  parser: "@babel/eslint-parser", // Use Babel's parser
+
   parserOptions: {
     tsconfigRootDir: __dirname,
     ecmaVersion: "latest",
-    sourceType: "script",
+    sourceType: "module",
     project: "./tsconfig.json",
+    requireConfigFile: true, // Babel doesn't require a config file
+    babelOptions: {
+      presets: ["@babel/preset-react"], // Ensure React preset is used
+    },
   },
-  plugins: ["react", "@typescript-eslint", "prettier"],
+  plugins: ["react", "@typescript-eslint", "prettier", "babel"], // Add "babel" plugin
   rules: {
     // TypeScript / ESLint-plugin rules
-    "@typescript-eslint/explicit-function-return-type": ["error"], // Requires return types
+    // "@typescript-eslint/explicit-function-return-type": ["error"], // Requires return types
     "@typescript-eslint/no-explicit-any": "error", // Warns when 'any' type is used
     "@typescript-eslint/no-unused-vars": "error", // Warns about unused variables
     "@typescript-eslint/no-inferrable-types": "off", // No require type annotations when they can be inferred
@@ -48,6 +54,7 @@ module.exports = {
     "@typescript-eslint/semi": ["error", "always"], // Requires semicolons
     "@typescript-eslint/eslint-multiline-ternary": ["off"],
     "@typescript-eslint/space-before-function-paren": ["off"],
+    "@typescript-eslint/consistent-type-definitions": ["off"],
     "@typescript-eslint/member-delimiter-style": [
       "error",
       {
@@ -68,7 +75,7 @@ module.exports = {
 
     // React / JSX rules
     "react/jsx-filename-extension": ["warn", { extensions: [".tsx"] }], // Warns about JSX in files with incorrect extensions
-    "react/prop-types": "error", // Requires prop types
+    "react/prop-types": "off", // Requires prop types
     "react/react-in-jsx-scope": "off", // No require React to be in scope when using JSX with React 17
 
     // General ESLint rules

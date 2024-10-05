@@ -19,7 +19,7 @@ public class JsonRpcMiddleware
 
             var response = new JsonRpcResponse
             {
-                Id = rpcRequest.Id,
+                Id = rpcRequest!.Id,
                 Result = await userBridge.GetAsync(1)
             };
 

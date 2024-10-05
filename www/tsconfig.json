@@ -21,8 +21,9 @@
     "jsx": "react-jsx"
   },
   "include": [
+    "src",
     "src/**/*",
-    ".eslintrc.js",
+    ".eslintrc.cjs",
     "react-app-env.d.ts"
   ]
 }
