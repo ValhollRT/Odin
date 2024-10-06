@@ -7,6 +7,7 @@ import {
 } from '@babylonjs/core';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import { useAppContext, Geometry } from '../context/AppContext';
+import { createGeometry, geometryData } from './GeometryFactory';
 
 const GeometryDropZone = () => {
   const {
@@ -33,14 +34,28 @@ const GeometryDropZone = () => {
 
   const handleDrop = (e: React.DragEvent, targetGeometryId?: number) => {
     e.preventDefault();
-    const geometryType = e.dataTransfer.getData('geometryType');
-    const color = e.dataTransfer.getData('color');
-    const draggedGeometryId = e.dataTransfer.getData('geometryId');
+    const geometryType = e.dataTransfer.getData("geometryType");
+    const color = e.dataTransfer.getData("color");
+    const draggedGeometryId = e.dataTransfer.getData("geometryId");
 
     if (geometryType) {
-      const newGeometry = createGeometry(geometryType, targetGeometryId);
-      if (newGeometry) {
-        setGeometries(prev => [...prev, newGeometry]);
+      const typeData = geometryData.find(
+        (data) => data.name.toLowerCase() === geometryType
+      ); // Busca la geometría en geometryData
+
+      if (typeData && scene) {
+        const mesh = createGeometry(scene, typeData); // Utiliza createGeometry
+        if (mesh) {
+          const newGeometry: Geometry = {
+            id: Number(mesh.id),
+            type: typeData.name.toLowerCase(),
+            meshName: mesh.name,
+            parentId: targetGeometryId, // Asigna parentId si se proporciona
+            children: [],
+            isExpanded: true,
+          };
+          setGeometries((prev) => [...prev, newGeometry]);
+        }
       }
     } else if (color && targetGeometryId !== undefined) {
       applyColor(targetGeometryId, color);
@@ -48,68 +63,12 @@ const GeometryDropZone = () => {
       reorganizeGeometries(parseInt(draggedGeometryId), targetGeometryId);
     }
   };
-
   const handleDragStart = (e: React.DragEvent, geometryId: number) => {
     e.dataTransfer.setData('geometryId', geometryId.toString());
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-  };
-
-  const createGeometry = (type: string, parentId?: number): Geometry | null => {
-    if (!scene) return null;
-
-    const id = Date.now();
-    const meshName = `${type}-${id}`;
-    let mesh;
-
-    switch (type) {
-      case 'sphere':
-        mesh = MeshBuilder.CreateSphere(meshName, { diameter: 5 }, scene);
-        break;
-      case 'cube':
-        mesh = MeshBuilder.CreateBox(meshName, { size: 5 }, scene);
-        break;
-      case 'cylinder':
-        mesh = MeshBuilder.CreateCylinder(
-          meshName,
-          { height: 5, diameter: 5 },
-          scene
-        );
-        break;
-      case 'cone':
-        mesh = MeshBuilder.CreateCylinder(
-          meshName,
-          { height: 5, diameterTop: 0, diameterBottom: 5 },
-          scene
-        );
-        break;
-      case 'torus':
-        mesh = MeshBuilder.CreateTorus(
-          meshName,
-          { thickness: 1, diameter: 5 },
-          scene
-        );
-        break;
-      default:
-        return null;
-    }
-
-    if (parentId) {
-      const parentMesh = scene.getMeshByName(
-        geometries.find(g => g.id === parentId)?.meshName || ''
-      );
-      if (parentMesh) {
-        mesh.parent = parentMesh;
-      }
-    } else {
-      mesh.position.x = (Math.random() - 0.5) * 20;
-      mesh.position.z = (Math.random() - 0.5) * 20;
-      mesh.position.y = 2.5;
-    }
-
-    return { id, type, meshName, children: [], isExpanded: true, parentId };
   };
 
   const applyColor = (geometryId: number, color: string) => {
