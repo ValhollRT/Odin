@@ -73,9 +73,7 @@ const geometryData: GeometryData[] = [
 // Función para crear la geometría
 const createGeometry = (scene: Scene, type: GeometryData): Mesh | null => {
   const id = Date.now();
-  // const meshName = `${type.name.toLowerCase()}-${id}`;
   const meshName = `${id}`;
-  // Manejar la creación de texto usando DynamicTexture
   if (type.method === "CreateText") {
     const { text, size } = type.options;
 
@@ -84,15 +82,12 @@ const createGeometry = (scene: Scene, type: GeometryData): Mesh | null => {
       return null;
     }
 
-    // Crear una textura dinámica para el texto
     const dynamicTexture = new DynamicTexture(`${meshName}-texture`, 512, scene, true);
     dynamicTexture.drawText(text, null, null, "bold 44px Arial", "white", "transparent", true);
 
-    // Crear un material con la textura dinámica
     const textMaterial = new StandardMaterial(`${meshName}-material`, scene);
     textMaterial.diffuseTexture = dynamicTexture;
 
-    // Crear un plano para mostrar el texto
     const textPlane = MeshBuilder.CreatePlane(meshName, { size: size || 5 }, scene);
     textPlane.material = textMaterial;
     textPlane.position.y = 2.5;

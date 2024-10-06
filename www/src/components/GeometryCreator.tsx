@@ -4,7 +4,6 @@ import { useAppContext } from "../context/AppContext";
 import { Button } from "./ui/Button";
 import { createGeometry, geometryData, GeometryData } from "./GeometryFactory";
 
-type GeometryType = "sphere" | "cube" | "cylinder" | "cone" | "torus";
 
 const colors = [
   { name: "Rojo", hex: "#FF0000" },
@@ -22,11 +21,11 @@ const GeometryCreator = () => {
   const handleGeometryCreate = (type: GeometryData) => {
     if (!scene) return;
 
-    const mesh = createGeometry(scene, type); // Usa la función createGeometry
+    const mesh = createGeometry(scene, type);
     setGeometries((prev) => [
       ...prev,
       {
-        id: Number(mesh!.id), // Convierte mesh.id a número
+        id: Number(mesh!.id),
         type: type.name.toLowerCase(),
         meshName: mesh!.name,
         children: [],
@@ -57,7 +56,6 @@ const GeometryCreator = () => {
               key={type.name}
               draggable
               onDragStart={(e) => {
-                // e.dataTransfer.setData("geometryType", type.name.toLowerCase());
                 handleDragStart(e, type.name.toLowerCase());
               }}
               onClick={() => {

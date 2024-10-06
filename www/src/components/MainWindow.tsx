@@ -23,7 +23,6 @@ export default function MainWindow() {
       const engine = new Engine(canvasRef.current, true);
       const newScene = new Scene(engine);
 
-      // Cámara
       const camera = new FreeCamera(
         "camera1",
         new Vector3(0, 50, -50),
@@ -32,7 +31,6 @@ export default function MainWindow() {
       camera.setTarget(new Vector3(0, 0, 20));
       camera.attachControl(canvasRef.current, true);
 
-      // Luz
       const light = new HemisphericLight(
         "light1",
         new Vector3(0, 1, 0),
@@ -41,7 +39,6 @@ export default function MainWindow() {
       light.groundColor = new Color3(0.5, 0.5, 0.5);
       light.intensity = 0.2;
 
-      // Material del suelo (grid)
       const groundMaterial = new GridMaterial("groundMaterial", newScene);
       groundMaterial.majorUnitFrequency = 5;
       groundMaterial.minorUnitVisibility = 0.45;
@@ -51,7 +48,6 @@ export default function MainWindow() {
       groundMaterial.lineColor = new Color3(1.0, 1.0, 1.0);
       groundMaterial.opacity = 0.98;
 
-      // Suelo
       const ground = MeshBuilder.CreateGround(
         "ground1",
         { width: 200, height: 200, subdivisions: 2 },

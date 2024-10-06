@@ -261,3 +261,37 @@
     align-items: center;
     justify-content: center;
   }
+
+  .geometry-dropzone { 
+    .geometry-item { 
+      margin-bottom: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      transition-property: color;
+      transition-duration: 200ms;
+  
+      &.selected {
+        background-color: #fef9c3;
+      }
+  
+      &:not(.selected):hover {
+        background-color: #f3f4f6;
+      }
+
+      .geometry-item-content {
+        display: flex;
+        align-items: center;
+      }
+  
+      .geometry-item-toggle {
+        margin-right: 0.5rem;
+      }
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+  }
