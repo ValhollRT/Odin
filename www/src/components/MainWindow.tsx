@@ -13,6 +13,7 @@ import GeometryDropZone from "./GeometryDropZone";
 import { useAppContext } from "../context/AppContext";
 import EmptyComponent from "./EmptyComponent";
 import { GridMaterial } from "@babylonjs/materials";
+import AnimationTimelineEditor from "./timeline/TimelinePanel";
 
 export default function MainWindow() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -80,7 +81,7 @@ export default function MainWindow() {
         <GeometryCreator />
       </div>
       <div className="component">
-        <EmptyComponent title="Component 2" />
+        <AnimationTimelineEditor />
       </div>
         <GeometryDropZone />
         <div className="canvas-container component-viewport">
