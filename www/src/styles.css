@@ -689,6 +689,16 @@ code {
   margin-bottom: 0.5rem; /* mb-2 */
 }
 
+
+.current-frame-indicator{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 100%;
+  background:red
+}
+
 /* ... otros estilos ... */
 
 .bg-yellow-500 {

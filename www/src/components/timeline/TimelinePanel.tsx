@@ -1067,7 +1067,7 @@ export default function AnimationTimelineEditor() {
               ))}
               {/* Current frame indicator */}
               <div
-                className="absolute top-0 bottom-0 w-px bg-red-500"
+                className="current-frame-indicator"
                 style={{ left: `${(currentFrame / totalFrames) * 100}%` }}
               />
               {/* Region selection */}
@@ -1297,18 +1297,13 @@ export default function AnimationTimelineEditor() {
           </div>
         </div>
         <div className="keyframe-panel">
-          {" "}
-          {/* Nueva clase para el panel de keyframes */}
           <KeyframeEditor
             selectedKeyframes={selectedKeyframes}
             animationData={animationData}
             updateKeyframeValue={updateKeyframeValue}
           />
           <div className="keyframe-values">
-            {" "}
-            {/* Nueva clase para los valores de keyframes */}
             <h3 className="keyframe-values-title">Keyframe Values</h3>{" "}
-            {/* Nueva clase para el título */}
             {selectedKeyframes.length > 0 ? (
               selectedKeyframes.map(({ objectId, property, keyframeId }) => {
                 const keyframe = animationData[objectId]?.[property]?.find(
