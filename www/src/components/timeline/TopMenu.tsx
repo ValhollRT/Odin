@@ -13,13 +13,6 @@ const DirectoryDropdown: React.FC<{
   }> = ({ directories, currentDirectoryId, onDirectoryChange }) => {
     return (
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="w-40 h-[50px]">
-            {directories.find((d) => d.id === currentDirectoryId)?.name ||
-              "Select Directory"}
-            <ChevronDown className="ml-2 h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
         <DropdownMenuContent>
           {directories.map((directory) => (
             <DropdownMenuItem

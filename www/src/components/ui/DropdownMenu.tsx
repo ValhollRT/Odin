@@ -5,13 +5,45 @@ import React, {
   forwardRef,
   isValidElement,
 } from "react";
-import { Button as OButton } from "./Button";
+import { Button, Button as OButton } from "./Button";
+import { ChevronDown } from "lucide-react";
+import { ICON_UI_SIZE as UI_ICON_SIZE } from "../timeline/utils";
 
-// DropdownMenu Components
 export const DropdownMenu: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  return <div className="dropdown-menu">{children}</div>;
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const handleButtonClick = () => {
+    setIsOpen(!isOpen);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  return (
+    <div className="dropdown-menu" ref={menuRef}>
+      <Button className="dropdown-menu-button" onClick={handleButtonClick}>
+        {/* Aquí puedes poner el contenido del botón, incluyendo el icono */}
+        Select Directory <ChevronDown size={UI_ICON_SIZE}/>
+      </Button>
+      {isOpen && children}
+    </div>
+  );
 };
 
 interface DropdownMenuTriggerProps

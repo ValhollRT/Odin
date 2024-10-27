@@ -1,9 +1,10 @@
 import { Object3D } from "./interfaces";
 
-export const OBJECT_HEIGHT = 50;
-export  const PROPERTY_HEIGHT = 50;
-export  const DIRECTORY_HEIGHT = 50;
-export  const INITIAL_GRID_SPACING = 5;
+export const OBJECT_HEIGHT = 30;
+export  const PROPERTY_HEIGHT = 30;
+export  const DIRECTORY_HEIGHT = 30;
+export  const INITIAL_GRID_SPACING = 10;
+export const ICON_UI_SIZE = 18;
 
 export const calculateObjectPosition = (
   objects: Object3D[],

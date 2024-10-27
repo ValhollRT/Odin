@@ -25,19 +25,19 @@ import {
   calculateObjectPosition,
 } from "./utils";
 import { ObjectPanel } from "./ObjectPanel";
+import { useAppContext } from "../../context/AppContext";
 
 export default function AnimationTimelineEditor() {
-  const [objects, setObjects] = useState<Object3D[]>([]);
+
+  const { objects, setObjects, animationData, setAnimationData, selectedProperty } = useAppContext();
+
   const [currentFrame, setCurrentFrame] = useState(0);
   const [totalFrames, setTotalFrames] = useState(100);
   const [visibleFrames] = useState(100);
   const [isPlaying, setIsPlaying] = useState(false);
   const [gridSpacing, setGridSpacing] = useState(INITIAL_GRID_SPACING);
-  const [selectedProperty, setSelectedProperty] = useState<{
-    objectId: string;
-    property: string;
-  } | null>(null);
-  const [animationData, setAnimationData] = useState<AnimationData>({});
+
+
   const [draggingKeyframe, setDraggingKeyframe] =
     useState<SelectedKeyframe | null>(null);
   const [selectedKeyframes, setSelectedKeyframes] = useState<
@@ -221,62 +221,8 @@ export default function AnimationTimelineEditor() {
         cancelAnimationFrame(animationFrame);
       }
     };
-  }, [
-    isPlaying,
-    currentFrame,
-    animationData,
-    objects,
-    showAll,
-    currentDirectoryId,
-    getLastKeyframeFrame,
-    getInterpolatedValue,
-  ]);
+  }, [isPlaying, currentFrame, animationData, objects, showAll, currentDirectoryId, getLastKeyframeFrame, getInterpolatedValue, setObjects]);
 
-  const addProperty = (objectId: string, property: string) => {
-    setObjects(
-      objects.map((obj) => {
-        if (obj.id === objectId) {
-          return {
-            ...obj,
-            properties: {
-              ...obj.properties,
-              [property]:
-                property === "scale"
-                  ? { x: 1, y: 1, z: 1 }
-                  : { x: 0, y: 0, z: 0 },
-            },
-          };
-        }
-        return obj;
-      })
-    );
-  };
-
-  const removeProperty = (objectId: string, property: string) => {
-    setObjects(
-      objects.map((obj) => {
-        if (obj.id === objectId) {
-          const { [property]: _, ...restProperties } = obj.properties;
-          return { ...obj, properties: restProperties };
-        }
-        return obj;
-      })
-    );
-    if (
-      selectedProperty?.objectId === objectId &&
-      selectedProperty?.property === property
-    ) {
-      setSelectedProperty(null);
-    }
-    setAnimationData((prevData) => {
-      const { [objectId]: objectData, ...restData } = prevData;
-      if (objectData) {
-        const { [property]: _, ...restProperties } = objectData;
-        return { ...restData, [objectId]: restProperties };
-      }
-      return restData;
-    });
-  };
 
   const addKeyframe = () => {
     if (selectedProperty) {
@@ -755,7 +701,7 @@ export default function AnimationTimelineEditor() {
       return newData;
     });
     setSelectedKeyframes([]);
-  },[selectedKeyframes]);
+  }, [selectedKeyframes]);
 
   const invertSelectedKeyframes = useCallback(() => {
     if (selectedKeyframes.length <= 1) return;
@@ -800,7 +746,7 @@ export default function AnimationTimelineEditor() {
       });
       return newData;
     });
-  },[animationData, selectedKeyframes]);
+  }, [animationData, selectedKeyframes]);
 
   const toggleObjectCollapse = (objectId: string) => {
     setCollapsedObjects((prevCollapsed) => {
@@ -1063,8 +1009,6 @@ export default function AnimationTimelineEditor() {
 
   return (
     <div className="animation-timeline-editor">
-      {" "}
-      {/* Nueva clase para el contenedor principal */}
       <TopMenu
         directories={directories}
         currentDirectoryId={currentDirectoryId}
@@ -1077,54 +1021,22 @@ export default function AnimationTimelineEditor() {
         onRedo={redo}
       />
       <div className="animation-timeline-content">
-        {" "}
-        {/* Nueva clase para el contenido principal */}
         <ObjectPanel
           objects={objects}
           directories={directories}
-          selectedProperty={selectedProperty}
-          onAddProperty={addProperty}
-          onRemoveProperty={removeProperty}
-          onSelectProperty={(objectId, property) =>
-            setSelectedProperty({ objectId, property })
-          }
           collapsedObjects={collapsedObjects}
           onToggleCollapse={toggleObjectCollapse}
           onDragProperty={handleDragProperty}
           onMoveObjectToDirectory={moveObjectToDirectory}
         />
         <div className="timeline-container">
-          {" "}
-          {/* Nueva clase para el contenedor de la línea de tiempo */}
-          <div
-            className="timeline-content" /* Nueva clase para el contenido de la línea de tiempo */
-            onScroll={handleScroll}
-          >
-            {/* Timeline content */}
+          <div className="timeline-content" onScroll={handleScroll}>
             <div
               ref={timelineRef}
               className="relative bg-gray-100 cursor-pointer"
               style={{
                 width: `${(totalFrames / visibleFrames) * 100}%`,
-                height: `${directories.reduce(
-                  (acc, dir) =>
-                    acc +
-                    DIRECTORY_HEIGHT +
-                    dir.objects.reduce((objAcc, objId) => {
-                      const obj = objects.find((o) => o.id === objId);
-                      return (
-                        objAcc +
-                        (obj
-                          ? collapsedObjects.has(obj.id)
-                            ? OBJECT_HEIGHT
-                            : OBJECT_HEIGHT +
-                              Object.keys(obj.properties).length *
-                                PROPERTY_HEIGHT
-                          : 0)
-                      );
-                    }, 0),
-                  0
-                )}px`,
+                height: `100%`,
               }}
               onMouseDown={handleTimelineMouseDown}
               onMouseMove={handleTimelineMouseMove}

@@ -11,7 +11,6 @@ import {
 import GeometryCreator from "./GeometryCreator";
 import GeometryDropZone from "./GeometryDropZone";
 import { useAppContext } from "../context/AppContext";
-import EmptyComponent from "./EmptyComponent";
 import { GridMaterial } from "@babylonjs/materials";
 import AnimationTimelineEditor from "./timeline/TimelinePanel";
 

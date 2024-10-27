@@ -43,3 +43,8 @@ export interface SelectedKeyframe {
   isCopy?: boolean;
   copiedKeyframes?: Keyframe[];
 }
+
+export interface SelectedProperty {
+  objectId: string;
+  property: string;
+}

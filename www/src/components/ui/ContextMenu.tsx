@@ -1,108 +1,77 @@
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  forwardRef,
-  isValidElement,
-} from "react";
+import React, { useState, useEffect, ReactNode } from "react";
 
-// ContextMenu Components
-export const ContextMenu: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  return <div className="context-menu">{children}</div>;
-};
+// ContextMenu Component
+export const ContextMenu: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
+  
+  // Abre el menú contextual en la posición del click
+  const openContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setPosition({ x: e.pageX, y: e.pageY });
+  };
 
-interface ContextMenuTriggerProps extends React.HTMLAttributes<HTMLDivElement> {
-  asChild?: boolean;
-  onContextMenu?: (e: React.MouseEvent) => void; // Explicitly type onContextMenu
-}
+  // Cierra el menú al hacer clic fuera
+  const closeContextMenu = () => setPosition(null);
 
-export const ContextMenuTrigger = forwardRef<
-  HTMLDivElement,
-  ContextMenuTriggerProps
->(({ children, asChild, ...props }, ref) => {
-  const Comp =
-    asChild && isValidElement(children) && typeof children.type === "function"
-      ? children.type
-      : "div";
-
-  return React.createElement(
-    Comp,
-    {
-      ref,
-      ...props,
-      onContextMenu: (e: React.MouseEvent) => {
-        e.preventDefault();
-        props.onContextMenu?.(e);
-      },
-    },
-    asChild ? null : children
-  );
-});
-
-ContextMenuTrigger.displayName = "ContextMenuTrigger";
-
-export const ContextMenuContent: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isOpen, setIsOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
+  // Cerrar menú al hacer clic en cualquier lugar de la página
   useEffect(() => {
-    const handleContextMenu = (event: MouseEvent) => {
-      event.preventDefault();
-      setPosition({ x: event.clientX, y: event.clientY });
-      setIsOpen(true);
-    };
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("contextmenu", handleContextMenu);
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("contextmenu", handleContextMenu);
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    document.addEventListener("click", closeContextMenu);
+    return () => document.removeEventListener("click", closeContextMenu);
   }, []);
 
-  if (!isOpen) return null;
+    // Filtrar los elementos `ContextMenuItem` y el contenido principal
+    const contextMenuItems = React.Children.toArray(children).filter(
+      (child) => React.isValidElement(child) && child.type === ContextMenuItem
+    );
+    
+    const mainContent = React.Children.toArray(children).filter(
+      (child) => !React.isValidElement(child) || child.type !== ContextMenuItem
+    );
 
   return (
-    <div
-      ref={ref}
-      className="context-menu-content"
-      style={{ top: position.y, left: position.x }}
-    >
-      <div
-        className="context-menu-items"
-        role="menu"
-        aria-orientation="vertical"
-        aria-labelledby="options-menu"
-      >
-        {children}
-      </div>
+    <div onContextMenu={openContextMenu}>
+      {mainContent}
+      {position && <ContextMenuContent position={position}>{contextMenuItems}</ContextMenuContent>}
     </div>
   );
 };
 
-export const ContextMenuItem: React.FC<
-  React.ButtonHTMLAttributes<HTMLButtonElement>
-> = ({ children, ...props }) => {
+// ContextMenuContent Component
+interface ContextMenuContentProps {
+  position: { x: number; y: number };
+  children: ReactNode;
+}
+
+export const ContextMenuContent: React.FC<ContextMenuContentProps> = ({ position, children }) => (
+  <div
+    style={{
+      position: "absolute",
+      top: position.y,
+      left: position.x,
+      background: "white",
+      boxShadow: "0px 4px 8px rgba(0,0,0,0.2)",
+      padding: "10px",
+      borderRadius: "4px",
+      zIndex: 1000,
+    }}
+    role="menu"
+  >
+    {React.Children.map(children, (child) =>
+      React.isValidElement(child) && child.type === ContextMenuItem ? child : null
+    )}
+  </div>
+);
+
+// ContextMenuItem Component
+export const ContextMenuItem: React.FC<{  children: ReactNode, onClick: () => void }> = ({ children, onClick }) => {
   return (
-    <button
-      type="button"
-      className="context-menu-item"
-      role="menuitem"
-      {...props}
-    >
+    <div onClick={onClick} style={{ padding: "5px 10px", cursor: "pointer" }}>
       {children}
-    </button>
+    </div>
   );
 };
+
+export const ContextMenuTrigger: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return <>{children}</>;
+};
+
