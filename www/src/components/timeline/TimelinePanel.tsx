@@ -28,15 +28,18 @@ import { ObjectPanel } from "./ObjectPanel";
 import { useAppContext } from "../../context/AppContext";
 
 export default function AnimationTimelineEditor() {
-
-  const { objects, setObjects, animationData, setAnimationData, selectedProperty } = useAppContext();
-
+  const {
+    objects,
+    setObjects,
+    animationData,
+    setAnimationData,
+    selectedProperty,
+  } = useAppContext();
   const [currentFrame, setCurrentFrame] = useState(0);
   const [totalFrames, setTotalFrames] = useState(100);
   const [visibleFrames] = useState(100);
   const [isPlaying, setIsPlaying] = useState(false);
   const [gridSpacing, setGridSpacing] = useState(INITIAL_GRID_SPACING);
-
 
   const [draggingKeyframe, setDraggingKeyframe] =
     useState<SelectedKeyframe | null>(null);
@@ -221,8 +224,17 @@ export default function AnimationTimelineEditor() {
         cancelAnimationFrame(animationFrame);
       }
     };
-  }, [isPlaying, currentFrame, animationData, objects, showAll, currentDirectoryId, getLastKeyframeFrame, getInterpolatedValue, setObjects]);
-
+  }, [
+    isPlaying,
+    currentFrame,
+    animationData,
+    objects,
+    showAll,
+    currentDirectoryId,
+    getLastKeyframeFrame,
+    getInterpolatedValue,
+    setObjects,
+  ]);
 
   const addKeyframe = () => {
     if (selectedProperty) {
@@ -296,17 +308,36 @@ export default function AnimationTimelineEditor() {
     }
   };
 
+const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, number>>(new Map());
+
   const handleKeyframeMouseDown =
     (objectId: string, property: string, keyframeId: string) =>
     (e: React.MouseEvent) => {
       e.stopPropagation();
 
+      console.log("handleKeyframeMouseDown");
       const isAlreadySelected = selectedKeyframes.some(
         (sk) =>
           sk.objectId === objectId &&
           sk.property === property &&
           sk.keyframeId === keyframeId
       );
+
+      const rect = timelineRef.current!.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      setDragStartFrame(Math.round((x / rect.width) * totalFrames));
+
+      console.log("XXX handleKeyframeMouseDown", isAlreadySelected);
+
+        // Store initial frames of selected keyframes
+        const initialFrames = new Map<string, number>();
+        selectedKeyframes.forEach(({ objectId, property, keyframeId }) => {
+          const keyframe = animationData[objectId][property].find(k => k.id === keyframeId);
+          if (keyframe) {
+            initialFrames.set(keyframeId, keyframe.frame);
+          }
+        });
+        setInitialKeyframeFrames(initialFrames);
 
       if (isCtrlPressed) {
         // Crear copias de todos los keyframes seleccionados
@@ -405,7 +436,27 @@ export default function AnimationTimelineEditor() {
     }
   };
 
-  const handleTimelineMouseMove = (e: React.MouseEvent) => {
+  const calculateObjectDuration = useCallback((objectId: string) => {
+    const objectKeyframes = animationData[objectId];
+    if (!objectKeyframes) return { start: 0, end: 0 };
+
+    let minFrame = Infinity;
+    let maxFrame = -Infinity;
+
+    Object.values(objectKeyframes).forEach((propertyKeyframes) => {
+      propertyKeyframes.forEach((keyframe) => {
+        minFrame = Math.min(minFrame, keyframe.frame);
+        maxFrame = Math.max(maxFrame, keyframe.frame);
+      });
+    });
+
+    return {
+      start: minFrame === Infinity ? 0 : minFrame,
+      end: maxFrame === -Infinity ? 0 : maxFrame,
+    };
+  },[animationData]);
+
+  const handleTimelineMouseMove = useCallback( async (e: React.MouseEvent) => {
     if (draggingObjectBar && timelineRef.current) {
       const rect = timelineRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -423,6 +474,7 @@ export default function AnimationTimelineEditor() {
           Object.keys(newData[objectId]).forEach((property) => {
             newData[objectId][property] = newData[objectId][property].map(
               (keyframe) => {
+                console.log("XXX keyframe", keyframe);
                 let newKeyframeFrame: number;
 
                 if (side === "left") {
@@ -471,10 +523,16 @@ export default function AnimationTimelineEditor() {
         0,
         Math.min(Math.round((x / rect.width) * totalFrames), totalFrames)
       );
-
       if (draggingKeyframe.isCopy && draggingKeyframe.copiedKeyframes) {
         // Mover todos los keyframes copiados
         const offset = newFrame - draggingKeyframe.copiedKeyframes[0].frame;
+        console.log(
+          "keyframe YES copied",
+          offset,
+          newFrame,
+          draggingKeyframe.copiedKeyframes[0].frame
+        );
+
         setAnimationData((prevData) => {
           const newData = { ...prevData };
           draggingKeyframe.copiedKeyframes?.forEach((ck) => {
@@ -495,34 +553,58 @@ export default function AnimationTimelineEditor() {
         const originalKeyframe = animationData[draggingKeyframe.objectId][
           draggingKeyframe.property
         ].find((k) => k.id === draggingKeyframe.keyframeId);
-        if (originalKeyframe) {
-          const offset = newFrame - originalKeyframe.frame;
+      
+        if (originalKeyframe && dragStartFrame !== null) {
+          const offset = newFrame - dragStartFrame;
+
+          console.log(
+            "keyframe NO copied",
+            offset,
+            newFrame,
+            dragStartFrame
+          );
+
           setAnimationData((prevData) => {
             const newData = { ...prevData };
+            const originalPositions = new Map();
+            
+            // Primero, guardamos las posiciones originales
+            selectedKeyframes.forEach(({ objectId, property, keyframeId }) => {
+              const keyframe = prevData[objectId][property].find(k => k.id === keyframeId);
+              console.log("XXX originalPositions", originalPositions, keyframe!.frame)
+              if (keyframe) {
+                originalPositions.set(keyframeId, keyframe.frame);
+              }
+            });
+      
+            // Luego, actualizamos las posiciones basándonos en las posiciones originales
+       
             selectedKeyframes.forEach(({ objectId, property, keyframeId }) => {
               const keyframeIndex = newData[objectId][property].findIndex(
                 (k) => k.id === keyframeId
               );
+
               if (keyframeIndex !== -1) {
-                const updatedFrame = Math.max(
-                  0,
-                  Math.min(
-                    newData[objectId][property][keyframeIndex].frame + offset,
-                    totalFrames
-                  )
-                );
-                newData[objectId][property][keyframeIndex] = {
-                  ...newData[objectId][property][keyframeIndex],
-                  frame: updatedFrame,
-                };
+                // Directly set the dragged keyframe's frame to newFrame
+                if (keyframeId === draggingKeyframe.keyframeId) {
+                  newData[objectId][property][keyframeIndex].frame = newFrame;
+                } else {
+                  // Apply offset to other selected keyframes
+                  const originalPosition = initialKeyframeFrames.get(keyframeId); // <-- Get initial frame
+                  const updatedFrame = Math.max(0, Math.min(originalPosition! + offset, totalFrames));
+                  newData[objectId][property][keyframeIndex].frame = updatedFrame;
+              
+                }
               }
             });
-            // Sort keyframes after updating
+      
+            // Ordenar keyframes después de actualizar
             Object.keys(newData).forEach((objId) => {
               Object.keys(newData[objId]).forEach((prop) => {
                 newData[objId][prop].sort((a, b) => a.frame - b.frame);
               });
             });
+            
             return newData;
           });
         }
@@ -537,11 +619,12 @@ export default function AnimationTimelineEditor() {
       const y = e.clientY - rect.top + timelineRef.current.scrollTop;
       setRegionSelection((prev) => ({ ...prev!, endX: x, endY: y }));
     }
-  };
+  }, [animationData, calculateObjectDuration, dragStartFrame, draggingKeyframe, draggingObjectBar, isCtrlPressed, isShiftPressed, regionSelection, selectedKeyframes, setAnimationData, totalFrames]);
 
   const handleTimelineMouseUp = () => {
     setDraggingObjectBar(null);
     setDragStartFrame(null);
+    setInitialKeyframeFrames(new Map());
     if (
       draggingKeyframe &&
       draggingKeyframe.isCopy &&
@@ -966,26 +1049,6 @@ export default function AnimationTimelineEditor() {
     },
     [totalFrames]
   );
-
-  const calculateObjectDuration = (objectId: string) => {
-    const objectKeyframes = animationData[objectId];
-    if (!objectKeyframes) return { start: 0, end: 0 };
-
-    let minFrame = Infinity;
-    let maxFrame = -Infinity;
-
-    Object.values(objectKeyframes).forEach((propertyKeyframes) => {
-      propertyKeyframes.forEach((keyframe) => {
-        minFrame = Math.min(minFrame, keyframe.frame);
-        maxFrame = Math.max(maxFrame, keyframe.frame);
-      });
-    });
-
-    return {
-      start: minFrame === Infinity ? 0 : minFrame,
-      end: maxFrame === -Infinity ? 0 : maxFrame,
-    };
-  };
 
   const handleDirectoryChange = (directoryId: string) => {
     setCurrentDirectoryId(directoryId);
