@@ -1,9 +1,9 @@
-import React, { useState, useEffect, ReactNode } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 
 // ContextMenu Component
 export const ContextMenu: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
-  
+
   // Abre el menú contextual en la posición del click
   const openContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -19,14 +19,14 @@ export const ContextMenu: React.FC<{ children: ReactNode }> = ({ children }) => 
     return () => document.removeEventListener("click", closeContextMenu);
   }, []);
 
-    // Filtrar los elementos `ContextMenuItem` y el contenido principal
-    const contextMenuItems = React.Children.toArray(children).filter(
-      (child) => React.isValidElement(child) && child.type === ContextMenuItem
-    );
-    
-    const mainContent = React.Children.toArray(children).filter(
-      (child) => !React.isValidElement(child) || child.type !== ContextMenuItem
-    );
+  // Filtrar los elementos `ContextMenuItem` y el contenido principal
+  const contextMenuItems = React.Children.toArray(children).filter(
+    (child) => React.isValidElement(child) && child.type === ContextMenuItem
+  );
+
+  const mainContent = React.Children.toArray(children).filter(
+    (child) => !React.isValidElement(child) || child.type !== ContextMenuItem
+  );
 
   return (
     <div onContextMenu={openContextMenu}>
@@ -63,7 +63,7 @@ export const ContextMenuContent: React.FC<ContextMenuContentProps> = ({ position
 );
 
 // ContextMenuItem Component
-export const ContextMenuItem: React.FC<{  children: ReactNode, onClick: () => void }> = ({ children, onClick }) => {
+export const ContextMenuItem: React.FC<{ children: ReactNode; onClick: () => void }> = ({ children, onClick }) => {
   return (
     <div onClick={onClick} style={{ padding: "5px 10px", cursor: "pointer" }}>
       {children}
@@ -74,4 +74,3 @@ export const ContextMenuItem: React.FC<{  children: ReactNode, onClick: () => vo
 export const ContextMenuTrigger: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <>{children}</>;
 };
-

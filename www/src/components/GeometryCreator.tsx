@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useAppContext } from "../context/AppContext";
-import { Button } from "./ui/Button";
 import { createGeometry, geometryData, GeometryData } from "./GeometryFactory";
-
+import { Button } from "./ui/Button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
 const colors = [
   { name: "Rojo", hex: "#FF0000" },

@@ -1,20 +1,12 @@
+import { Color3, HighlightLayer, StandardMaterial } from "@babylonjs/core";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
-import { StandardMaterial, Color3, HighlightLayer } from "@babylonjs/core";
-import { ChevronRight, ChevronDown } from "lucide-react";
-import { useAppContext, Geometry } from "../context/AppContext";
+import { Geometry, useAppContext } from "../context/AppContext";
 import { createGeometry, geometryData } from "./GeometryFactory";
 
 const GeometryDropZone = () => {
-  const {
-    scene,
-    geometries,
-    setGeometries,
-    selectedGeometries,
-    setSelectedGeometries,
-  } = useAppContext();
-  const [highlightLayer, setHighlightLayer] = useState<HighlightLayer | null>(
-    null
-  );
+  const { scene, geometries, setGeometries, selectedGeometries, setSelectedGeometries } = useAppContext();
+  const [highlightLayer, setHighlightLayer] = useState<HighlightLayer | null>(null);
 
   useEffect(() => {
     if (scene) {
@@ -34,9 +26,7 @@ const GeometryDropZone = () => {
     const draggedGeometryId = e.dataTransfer.getData("geometryId");
 
     if (geometryType) {
-      const typeData = geometryData.find(
-        (data) => data.name.toLowerCase() === geometryType
-      ); // Busca la geometría en geometryData
+      const typeData = geometryData.find((data) => data.name.toLowerCase() === geometryType); // Busca la geometría en geometryData
 
       if (typeData && scene) {
         const mesh = createGeometry(scene, typeData); // Utiliza createGeometry
@@ -91,9 +81,7 @@ const GeometryDropZone = () => {
     if (event.ctrlKey || event.metaKey) {
       // Multi-selección
       setSelectedGeometries((prev) =>
-        prev.includes(geometryId)
-          ? prev.filter((id) => id !== geometryId)
-          : [...prev, geometryId]
+        prev.includes(geometryId) ? prev.filter((id) => id !== geometryId) : [...prev, geometryId]
       );
     } else {
       // Selección única
@@ -108,9 +96,7 @@ const GeometryDropZone = () => {
 
     highlightLayer.removeAllMeshes();
     selectedGeometries.forEach((id) => {
-      const mesh = scene.getMeshByName(
-        geometries.find((g) => g.id === id)?.meshName || ""
-      );
+      const mesh = scene.getMeshByName(geometries.find((g) => g.id === id)?.meshName || "");
       if (mesh) {
         highlightLayer.addMesh(mesh as any, Color3.Yellow());
       }
@@ -134,12 +120,8 @@ const GeometryDropZone = () => {
     });
 
     if (scene) {
-      const draggedMesh = scene.getMeshByName(
-        geometries.find((g) => g.id === draggedId)?.meshName || ""
-      );
-      const targetMesh = scene.getMeshByName(
-        geometries.find((g) => g.id === targetId)?.meshName || ""
-      );
+      const draggedMesh = scene.getMeshByName(geometries.find((g) => g.id === draggedId)?.meshName || "");
+      const targetMesh = scene.getMeshByName(geometries.find((g) => g.id === targetId)?.meshName || "");
       if (draggedMesh && targetMesh) {
         draggedMesh.parent = targetMesh;
       }
@@ -147,18 +129,12 @@ const GeometryDropZone = () => {
   };
 
   const toggleExpand = (geometryId: number) => {
-    setGeometries((prev) =>
-      prev.map((g) =>
-        g.id === geometryId ? { ...g, isExpanded: !g.isExpanded } : g
-      )
-    );
+    setGeometries((prev) => prev.map((g) => (g.id === geometryId ? { ...g, isExpanded: !g.isExpanded } : g)));
   };
 
   const renderGeometryItem = (geometry: Geometry, level: number = 0) => {
     const hasChildren = geometry.children.length > 0;
-    const childGeometries = geometries.filter(
-      (g) => g.parentId === geometry.id
-    );
+    const childGeometries = geometries.filter((g) => g.parentId === geometry.id);
 
     return (
       <div key={geometry.id} style={{ marginLeft: `${level * 20}px` }}>
@@ -174,40 +150,25 @@ const GeometryDropZone = () => {
         >
           <div className="geometry-item-content">
             {hasChildren && (
-              <button
-                onClick={() => toggleExpand(geometry.id)}
-                className="geometry-item-toggle"
-              >
-                {geometry.isExpanded ? (
-                  <ChevronDown size={16} />
-                ) : (
-                  <ChevronRight size={16} />
-                )}
+              <button onClick={() => toggleExpand(geometry.id)} className="geometry-item-toggle">
+                {geometry.isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
               </button>
             )}
             <h3>{geometry.type}</h3>
           </div>
           {geometry.color && <p>Color: {geometry.color}</p>}
         </div>
-        {hasChildren &&
-          geometry.isExpanded &&
-          childGeometries.map((child) => renderGeometryItem(child, level + 1))}
+        {hasChildren && geometry.isExpanded && childGeometries.map((child) => renderGeometryItem(child, level + 1))}
       </div>
     );
   };
 
   return (
-    <div
-      onDrop={(e) => handleDrop(e)}
-      onDragOver={handleDragOver}
-      className="component geometry-dropzone"
-    >
+    <div onDrop={(e) => handleDrop(e)} onDragOver={handleDragOver} className="component geometry-dropzone">
       <h2>Geometrías Creadas</h2>
-      {geometries
-        .filter((g) => !g.parentId)
-        .map((geometry) => renderGeometryItem(geometry))}
+      {geometries.filter((g) => !g.parentId).map((geometry) => renderGeometryItem(geometry))}
     </div>
   );
-}
+};
 
 export default GeometryDropZone;

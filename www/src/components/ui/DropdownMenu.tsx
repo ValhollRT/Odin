@@ -1,17 +1,9 @@
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  forwardRef,
-  isValidElement,
-} from "react";
-import { Button, Button as OButton } from "./Button";
 import { ChevronDown } from "lucide-react";
+import React, { forwardRef, isValidElement, useEffect, useRef, useState } from "react";
 import { ICON_UI_SIZE as UI_ICON_SIZE } from "../timeline/utils";
+import { Button, Button as OButton } from "./Button";
 
-export const DropdownMenu: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const DropdownMenu: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -39,43 +31,36 @@ export const DropdownMenu: React.FC<{ children: React.ReactNode }> = ({
     <div className="dropdown-menu" ref={menuRef}>
       <Button className="dropdown-menu-button" onClick={handleButtonClick}>
         {/* Aquí puedes poner el contenido del botón, incluyendo el icono */}
-        Select Directory <ChevronDown size={UI_ICON_SIZE}/>
+        Select Directory <ChevronDown size={UI_ICON_SIZE} />
       </Button>
       {isOpen && children}
     </div>
   );
 };
 
-interface DropdownMenuTriggerProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface DropdownMenuTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
   variant?: "default" | "outline" | "ghost";
 }
 
-export const DropdownMenuTrigger = forwardRef<
-  HTMLButtonElement,
-  DropdownMenuTriggerProps
->(({ children, asChild, variant = "default", className, ...props }, ref) => {
-  const Comp =
-    asChild && isValidElement(children) && typeof children.type === "function"
-      ? children.type
-      : OButton;
+export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTriggerProps>(
+  ({ children, asChild, variant = "default", className, ...props }, ref) => {
+    const Comp = asChild && isValidElement(children) && typeof children.type === "function" ? children.type : OButton;
 
-  return React.createElement(
-    Comp,
-    {
-      ref,
-      variant,
-      className: `${className || ""} ${asChild ? "" : "w-full"}`,
-      ...props,
-    },
-    asChild ? null : children
-  );
-});
+    return React.createElement(
+      Comp,
+      {
+        ref,
+        variant,
+        className: `${className || ""} ${asChild ? "" : "w-full"}`,
+        ...props,
+      },
+      asChild ? null : children
+    );
+  }
+);
 
-export const DropdownMenuContent: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const DropdownMenuContent: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -94,28 +79,16 @@ export const DropdownMenuContent: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <div ref={ref} className="dropdown-menu-content">
-      <div
-        className="dropdown-menu-items"
-        role="menu"
-        aria-orientation="vertical"
-        aria-labelledby="options-menu"
-      >
+      <div className="dropdown-menu-items" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
         {children}
       </div>
     </div>
   );
 };
 
-export const DropdownMenuItem: React.FC<
-  React.ButtonHTMLAttributes<HTMLButtonElement>
-> = ({ children, ...props }) => {
+export const DropdownMenuItem: React.FC<React.ButtonHTMLAttributes<HTMLButtonElement>> = ({ children, ...props }) => {
   return (
-    <button
-      type="button"
-      className="dropdown-menu-item"
-      role="menuitem"
-      {...props}
-    >
+    <button type="button" className="dropdown-menu-item" role="menuitem" {...props}>
       {children}
     </button>
   );

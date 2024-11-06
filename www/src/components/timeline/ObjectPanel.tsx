@@ -1,9 +1,6 @@
 import { ChevronRight, ChevronDown } from "lucide-react";
 import React, { useState } from "react";
-import {
-  ContextMenu,
-  ContextMenuItem,
-} from "../ui/ContextMenu";
+import { ContextMenu, ContextMenuItem } from "../ui/ContextMenu";
 import { Object3D, Directory } from "./interfaces";
 import { DIRECTORY_HEIGHT } from "./utils";
 import { useAppContext } from "../../context/AppContext";
@@ -11,10 +8,7 @@ import { useAppContext } from "../../context/AppContext";
 export const ObjectItem: React.FC<{
   object: Object3D;
   directoryId: string;
-  onDrop: (
-    targetDirectoryId: string,
-    targetObjectId?: string
-  ) => (e: React.DragEvent) => void;
+  onDrop: (targetDirectoryId: string, targetObjectId?: string) => (e: React.DragEvent) => void;
   handleDragOver: (e: React.DragEvent) => void;
   handleDragStart: (objectId: string, property?: string) => (e: React.DragEvent) => void;
 }> = ({ object, directoryId, onDrop, handleDragOver, handleDragStart }) => {
@@ -43,7 +37,7 @@ export const ObjectItem: React.FC<{
         {propertiesMock.map((property) => (
           <ContextMenuItem
             key={`${property}-${object.id}`}
-            onClick={() => addProperty({objectId: object.id, property})}
+            onClick={() => addProperty({ objectId: object.id, property })}
           >
             {property}
           </ContextMenuItem>
@@ -67,30 +61,28 @@ export const ObjectProperties: React.FC<{
     <>
       {Object.entries(properties).map(([key, value]) => (
         <ContextMenu key={`${key}-${objectId}`}>
-            <div 
+          <div
             style={{ height: `${DIRECTORY_HEIGHT}px` }}
             className={`property-button ${
-              selectedProperty?.objectId === objectId &&
-              selectedProperty?.property === key
+              selectedProperty?.objectId === objectId && selectedProperty?.property === key
                 ? "property-button-selected"
                 : "property-button-default"
             }`}
-            onClick={() => setSelectedProperty({objectId, property: key})}
+            onClick={() => setSelectedProperty({ objectId, property: key })}
             draggable
             onDragStart={onDragStart(objectId, key)}
-            >
-              {key}
-            </div>
-  
-            <ContextMenuItem
-              onClick={() => {
-                console.log(`Removing property: ${key} from object: ${objectId}`);
-                removeProperty({ objectId: objectId, property: key });
-              }}
-            >
-              Remove Property
-            </ContextMenuItem>
+          >
+            {key}
+          </div>
 
+          <ContextMenuItem
+            onClick={() => {
+              console.log(`Removing property: ${key} from object: ${objectId}`);
+              removeProperty({ objectId: objectId, property: key });
+            }}
+          >
+            Remove Property
+          </ContextMenuItem>
         </ContextMenu>
       ))}
     </>
@@ -102,58 +94,35 @@ export const ObjectPanel: React.FC<{
   directories: Directory[];
   collapsedObjects: Set<string>;
   onToggleCollapse: (objectId: string) => void;
-  onDragProperty: (
-    sourceObjectId: string,
-    targetObjectId: string,
-    property: string,
-    keepSource: boolean
-  ) => void;
+  onDragProperty: (sourceObjectId: string, targetObjectId: string, property: string, keepSource: boolean) => void;
   onMoveObjectToDirectory: (objectId: string, directoryId: string) => void;
-}> = ({
-  objects,
-  directories,
-  collapsedObjects,
-  onToggleCollapse,
-  onDragProperty,
-  onMoveObjectToDirectory,
-}) => {
+}> = ({ objects, directories, collapsedObjects, onToggleCollapse, onDragProperty, onMoveObjectToDirectory }) => {
   const [draggedProperty, setDraggedProperty] = useState<{
     objectId: string;
     property: string;
   } | null>(null);
 
-  const handleDragStart =
-    (objectId: string, property?: string) => (e: React.DragEvent) => {
-      e.dataTransfer.setData(
-        "text/plain",
-        JSON.stringify({ objectId, property })
-      );
-      if (property) {
-        setDraggedProperty({ objectId, property });
-      }
-    };
+  const handleDragStart = (objectId: string, property?: string) => (e: React.DragEvent) => {
+    e.dataTransfer.setData("text/plain", JSON.stringify({ objectId, property }));
+    if (property) {
+      setDraggedProperty({ objectId, property });
+    }
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
 
-  const handleDrop =
-    (targetDirectoryId: string, targetObjectId?: string) =>
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      const data = JSON.parse(e.dataTransfer.getData("text/plain"));
-      if (data.property && targetObjectId) {
-        onDragProperty(
-          data.objectId,
-          targetObjectId,
-          data.property,
-          e.shiftKey
-        );
-      } else if (data.objectId) {
-        onMoveObjectToDirectory(data.objectId, targetDirectoryId);
-      }
-      setDraggedProperty(null);
-    };
+  const handleDrop = (targetDirectoryId: string, targetObjectId?: string) => (e: React.DragEvent) => {
+    e.preventDefault();
+    const data = JSON.parse(e.dataTransfer.getData("text/plain"));
+    if (data.property && targetObjectId) {
+      onDragProperty(data.objectId, targetObjectId, data.property, e.shiftKey);
+    } else if (data.objectId) {
+      onMoveObjectToDirectory(data.objectId, targetDirectoryId);
+    }
+    setDraggedProperty(null);
+  };
 
   return (
     <div className="object-panel">
@@ -186,6 +155,4 @@ export const ObjectPanel: React.FC<{
       </div>
     </div>
   );
-
-  
 };

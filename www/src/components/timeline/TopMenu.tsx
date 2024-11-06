@@ -1,31 +1,28 @@
+import { Redo, Undo } from "lucide-react";
 import React from "react";
-import { Undo, Redo, ChevronDown } from "lucide-react";
 import { Button } from "../ui/Button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from "../ui/DropdownMenu";
 import { Label } from "../ui/Label";
 import { Switch } from "../ui/switch";
 import { Directory } from "./interfaces";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/DropdownMenu";
 
 const DirectoryDropdown: React.FC<{
-    directories: Directory[];
-    currentDirectoryId: string;
-    onDirectoryChange: (directoryId: string) => void;
-  }> = ({ directories, currentDirectoryId, onDirectoryChange }) => {
-    return (
-      <DropdownMenu>
-        <DropdownMenuContent>
-          {directories.map((directory) => (
-            <DropdownMenuItem
-              key={directory.id}
-              onClick={() => onDirectoryChange(directory.id)}
-            >
-              {directory.name}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  };
+  directories: Directory[];
+  currentDirectoryId: string;
+  onDirectoryChange: (directoryId: string) => void;
+}> = ({ directories, currentDirectoryId, onDirectoryChange }) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuContent>
+        {directories.map((directory) => (
+          <DropdownMenuItem key={directory.id} onClick={() => onDirectoryChange(directory.id)}>
+            {directory.name}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 
 export const TopMenu: React.FC<{
   directories: Directory[];
@@ -69,11 +66,7 @@ export const TopMenu: React.FC<{
       </div>
       <div className="top-menu-right">
         <Label htmlFor="all-toggle">All</Label>
-        <Switch
-          id="all-toggle"
-          checked={showAll}
-          onCheckedChange={onAllToggle}
-        />
+        <Switch id="all-toggle" checked={showAll} onCheckedChange={onAllToggle} />
       </div>
     </div>
   );

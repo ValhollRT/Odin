@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface SwitchProps {
   id: string;
@@ -19,8 +19,8 @@ export const Switch: React.FC<SwitchProps> = ({ id, checked, onCheckedChange, la
             checked={checked}
             onChange={(e) => onCheckedChange(e.target.checked)}
           />
-          <div className={`switch-track ${checked ? 'switch-track-checked' : ''}`}></div>
-          <div className={`switch-thumb ${checked ? 'switch-thumb-checked' : ''}`}></div>
+          <div className={`switch-track ${checked ? "switch-track-checked" : ""}`}></div>
+          <div className={`switch-thumb ${checked ? "switch-thumb-checked" : ""}`}></div>
         </div>
         {label && <span className="switch-text">{label}</span>}
       </label>

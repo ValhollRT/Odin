@@ -1,13 +1,5 @@
-import React, { InputHTMLAttributes } from 'react';
+import React, { InputHTMLAttributes } from "react";
 
-export const Input: React.FC<InputHTMLAttributes<HTMLInputElement>> = ({ 
-  className = '', 
-  ...props 
-}) => {
-  return (
-    <input
-      className={`input ${className}`}
-      {...props}
-    />
-  );
+export const Input: React.FC<InputHTMLAttributes<HTMLInputElement>> = ({ className = "", ...props }) => {
+  return <input className={`input ${className}`} {...props} />;
 };

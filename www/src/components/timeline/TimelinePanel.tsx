@@ -1,53 +1,30 @@
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useMemo,
-  useCallback,
-} from "react";
-import {
-  Object3D,
-  Directory,
-  SelectedKeyframe,
-  AnimationData,
-  RegionSelection,
-  Keyframe,
-} from "./interfaces";
-import { TopMenu } from "./TopMenu";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAppContext } from "../../context/AppContext";
+import { AnimationData, Directory, Keyframe, Object3D, RegionSelection, SelectedKeyframe } from "./interfaces";
 import { KeyframeEditor } from "./KeyframeEditor";
+import { ObjectPanel } from "./ObjectPanel";
 import { PlaybackControls } from "./PlaybackControls";
+import { TopMenu } from "./TopMenu";
 import {
-  INITIAL_GRID_SPACING,
-  interpolateValue,
   DIRECTORY_HEIGHT,
+  INITIAL_GRID_SPACING,
   OBJECT_HEIGHT,
   PROPERTY_HEIGHT,
   calculateObjectPosition,
+  interpolateValue,
 } from "./utils";
-import { ObjectPanel } from "./ObjectPanel";
-import { useAppContext } from "../../context/AppContext";
 
 export default function AnimationTimelineEditor() {
-  const {
-    objects,
-    setObjects,
-    animationData,
-    setAnimationData,
-    selectedProperty,
-  } = useAppContext();
+  const { objects, setObjects, animationData, setAnimationData, selectedProperty } = useAppContext();
   const [currentFrame, setCurrentFrame] = useState(0);
   const [totalFrames, setTotalFrames] = useState(100);
   const [visibleFrames] = useState(100);
   const [isPlaying, setIsPlaying] = useState(false);
   const [gridSpacing, setGridSpacing] = useState(INITIAL_GRID_SPACING);
 
-  const [draggingKeyframe, setDraggingKeyframe] =
-    useState<SelectedKeyframe | null>(null);
-  const [selectedKeyframes, setSelectedKeyframes] = useState<
-    SelectedKeyframe[]
-  >([]);
-  const [regionSelection, setRegionSelection] =
-    useState<RegionSelection | null>(null);
+  const [draggingKeyframe, setDraggingKeyframe] = useState<SelectedKeyframe | null>(null);
+  const [selectedKeyframes, setSelectedKeyframes] = useState<SelectedKeyframe[]>([]);
+  const [regionSelection, setRegionSelection] = useState<RegionSelection | null>(null);
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
   const [draggingObjectBar, setDraggingObjectBar] = useState<{
@@ -59,9 +36,7 @@ export default function AnimationTimelineEditor() {
   // const objectPanelRef = useRef<HTMLDivElement>(null);
   const [currentDirectoryId, setCurrentDirectoryId] = useState("default");
   const [showAll, setShowAll] = useState(false);
-  const [collapsedObjects, setCollapsedObjects] = useState<Set<string>>(
-    new Set()
-  );
+  const [collapsedObjects, setCollapsedObjects] = useState<Set<string>>(new Set());
   const [undoStack, setUndoStack] = useState<AnimationData[]>([]);
   const [redoStack, setRedoStack] = useState<AnimationData[]>([]);
   const [, setScrollPosition] = useState({ x: 0, y: 0 });
@@ -100,11 +75,7 @@ export default function AnimationTimelineEditor() {
     };
     setObjects([...objects, newObject]);
     setDirectories((dirs) =>
-      dirs.map((dir) =>
-        dir.id === currentDirectoryId
-          ? { ...dir, objects: [...dir.objects, newObject.id] }
-          : dir
-      )
+      dirs.map((dir) => (dir.id === currentDirectoryId ? { ...dir, objects: [...dir.objects, newObject.id] } : dir))
     );
   };
 
@@ -138,20 +109,13 @@ export default function AnimationTimelineEditor() {
       const keyframes = animationData[objectId]?.[property] || [];
       if (keyframes.length === 0) return null;
 
-      const prevKeyframe = keyframes.reduce(
-        (prev, curr) => (curr.frame <= frame ? curr : prev),
-        keyframes[0]
-      );
+      const prevKeyframe = keyframes.reduce((prev, curr) => (curr.frame <= frame ? curr : prev), keyframes[0]);
 
-      const nextKeyframe =
-        keyframes.find((k) => k.frame > frame) ||
-        keyframes[keyframes.length - 1];
+      const nextKeyframe = keyframes.find((k) => k.frame > frame) || keyframes[keyframes.length - 1];
 
       if (prevKeyframe === nextKeyframe) return prevKeyframe.value;
 
-      const t =
-        (frame - prevKeyframe.frame) /
-        (nextKeyframe.frame - prevKeyframe.frame);
+      const t = (frame - prevKeyframe.frame) / (nextKeyframe.frame - prevKeyframe.frame);
       return {
         x: interpolateValue(prevKeyframe.value.x, nextKeyframe.value.x, t),
         y: interpolateValue(prevKeyframe.value.y, nextKeyframe.value.y, t),
@@ -176,9 +140,7 @@ export default function AnimationTimelineEditor() {
             return dir;
           });
 
-          if (
-            newDirs.every((dir) => dir.currentFrame >= getLastKeyframeFrame())
-          ) {
+          if (newDirs.every((dir) => dir.currentFrame >= getLastKeyframeFrame())) {
             setIsPlaying(false);
           }
 
@@ -188,11 +150,7 @@ export default function AnimationTimelineEditor() {
         // Actualizar los valores interpolados para todas las propiedades
         objects.forEach((obj) => {
           Object.keys(obj.properties).forEach((prop) => {
-            const interpolatedValue = getInterpolatedValue(
-              obj.id,
-              prop,
-              currentFrame
-            );
+            const interpolatedValue = getInterpolatedValue(obj.id, prop, currentFrame);
             if (interpolatedValue) {
               setObjects((prevObjects) =>
                 prevObjects.map((o) =>
@@ -241,12 +199,8 @@ export default function AnimationTimelineEditor() {
       const { objectId, property } = selectedProperty;
       const existingKeyframes = animationData[objectId]?.[property] || [];
 
-      const prevKeyframe = [...existingKeyframes]
-        .reverse()
-        .find((k) => k.frame <= currentFrame);
-      const nextKeyframe = existingKeyframes.find(
-        (k) => k.frame >= currentFrame
-      );
+      const prevKeyframe = [...existingKeyframes].reverse().find((k) => k.frame <= currentFrame);
+      const nextKeyframe = existingKeyframes.find((k) => k.frame >= currentFrame);
 
       let newKeyframeValue: { x: number; y: number; z: number };
       let newAngle = 0;
@@ -256,21 +210,9 @@ export default function AnimationTimelineEditor() {
         const totalDuration = nextKeyframe.frame - prevKeyframe.frame;
         const fraction = (currentFrame - prevKeyframe.frame) / totalDuration;
         newKeyframeValue = {
-          x: interpolateValue(
-            prevKeyframe.value.x,
-            nextKeyframe.value.x,
-            fraction
-          ),
-          y: interpolateValue(
-            prevKeyframe.value.y,
-            nextKeyframe.value.y,
-            fraction
-          ),
-          z: interpolateValue(
-            prevKeyframe.value.z,
-            nextKeyframe.value.z,
-            fraction
-          ),
+          x: interpolateValue(prevKeyframe.value.x, nextKeyframe.value.x, fraction),
+          y: interpolateValue(prevKeyframe.value.y, nextKeyframe.value.y, fraction),
+          z: interpolateValue(prevKeyframe.value.z, nextKeyframe.value.z, fraction),
         };
         newAngle = prevKeyframe.angle;
         newWeight = prevKeyframe.weight;
@@ -283,8 +225,7 @@ export default function AnimationTimelineEditor() {
         newAngle = nextKeyframe.angle;
         newWeight = nextKeyframe.weight;
       } else {
-        newKeyframeValue = objects.find((obj) => obj.id === objectId)
-          ?.properties[property] || { x: 0, y: 0, z: 0 };
+        newKeyframeValue = objects.find((obj) => obj.id === objectId)?.properties[property] || { x: 0, y: 0, z: 0 };
       }
 
       const newKeyframe: Keyframe = {
@@ -299,122 +240,104 @@ export default function AnimationTimelineEditor() {
         ...prevData,
         [objectId]: {
           ...prevData[objectId],
-          [property]: [
-            ...(prevData[objectId]?.[property] || []),
-            newKeyframe,
-          ].sort((a, b) => a.frame - b.frame),
+          [property]: [...(prevData[objectId]?.[property] || []), newKeyframe].sort((a, b) => a.frame - b.frame),
         },
       }));
     }
   };
 
-const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, number>>(new Map());
+  const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, number>>(new Map());
 
-  const handleKeyframeMouseDown =
-    (objectId: string, property: string, keyframeId: string) =>
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
+  const handleKeyframeMouseDown = (objectId: string, property: string, keyframeId: string) => (e: React.MouseEvent) => {
+    e.stopPropagation();
 
-      console.log("handleKeyframeMouseDown");
-      const isAlreadySelected = selectedKeyframes.some(
-        (sk) =>
-          sk.objectId === objectId &&
-          sk.property === property &&
-          sk.keyframeId === keyframeId
+    console.log("handleKeyframeMouseDown");
+    const isAlreadySelected = selectedKeyframes.some(
+      (sk) => sk.objectId === objectId && sk.property === property && sk.keyframeId === keyframeId
+    );
+
+    const rect = timelineRef.current!.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    setDragStartFrame(Math.round((x / rect.width) * totalFrames));
+
+    console.log("XXX handleKeyframeMouseDown", isAlreadySelected);
+
+    // Store initial frames of selected keyframes
+    const initialFrames = new Map<string, number>();
+    selectedKeyframes.forEach(({ objectId, property, keyframeId }) => {
+      const keyframe = animationData[objectId][property].find((k) => k.id === keyframeId);
+      if (keyframe) {
+        initialFrames.set(keyframeId, keyframe.frame);
+      }
+    });
+    setInitialKeyframeFrames(initialFrames);
+
+    if (isCtrlPressed) {
+      // Crear copias de todos los keyframes seleccionados
+      const copiedKeyframes = selectedKeyframes
+        .map((sk) => {
+          const originalKeyframe = animationData[sk.objectId][sk.property].find((k) => k.id === sk.keyframeId);
+          if (originalKeyframe) {
+            return {
+              ...originalKeyframe,
+              id: `keyframe-copy-${Date.now()}-${Math.random()}`,
+              objectId: sk.objectId,
+              property: sk.property,
+            };
+          }
+          return null;
+        })
+        .filter(Boolean) as Keyframe[];
+
+      setDraggingKeyframe({
+        objectId,
+        property,
+        keyframeId: copiedKeyframes[0].id,
+        isCopy: true,
+        copiedKeyframes,
+      });
+
+      setSelectedKeyframes(
+        copiedKeyframes.map((ck) => ({
+          objectId: ck.objectId,
+          property: ck.property,
+          keyframeId: ck.id,
+          isCopy: true,
+        }))
       );
 
-      const rect = timelineRef.current!.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      setDragStartFrame(Math.round((x / rect.width) * totalFrames));
-
-      console.log("XXX handleKeyframeMouseDown", isAlreadySelected);
-
-        // Store initial frames of selected keyframes
-        const initialFrames = new Map<string, number>();
-        selectedKeyframes.forEach(({ objectId, property, keyframeId }) => {
-          const keyframe = animationData[objectId][property].find(k => k.id === keyframeId);
-          if (keyframe) {
-            initialFrames.set(keyframeId, keyframe.frame);
-          }
+      // Añadir temporalmente los keyframes copiados a los datos de animación
+      setAnimationData((prevData) => {
+        const newData = { ...prevData };
+        copiedKeyframes.forEach((ck) => {
+          if (!newData[ck.objectId]) newData[ck.objectId] = {};
+          if (!newData[ck.objectId][ck.property]) newData[ck.objectId][ck.property] = [];
+          newData[ck.objectId][ck.property].push(ck);
         });
-        setInitialKeyframeFrames(initialFrames);
-
-      if (isCtrlPressed) {
-        // Crear copias de todos los keyframes seleccionados
-        const copiedKeyframes = selectedKeyframes
-          .map((sk) => {
-            const originalKeyframe = animationData[sk.objectId][
-              sk.property
-            ].find((k) => k.id === sk.keyframeId);
-            if (originalKeyframe) {
-              return {
-                ...originalKeyframe,
-                id: `keyframe-copy-${Date.now()}-${Math.random()}`,
-                objectId: sk.objectId,
-                property: sk.property,
-              };
-            }
-            return null;
-          })
-          .filter(Boolean) as Keyframe[];
-
-        setDraggingKeyframe({
-          objectId,
-          property,
-          keyframeId: copiedKeyframes[0].id,
-          isCopy: true,
-          copiedKeyframes,
-        });
-
-        setSelectedKeyframes(
-          copiedKeyframes.map((ck) => ({
-            objectId: ck.objectId,
-            property: ck.property,
-            keyframeId: ck.id,
-            isCopy: true,
-          }))
-        );
-
-        // Añadir temporalmente los keyframes copiados a los datos de animación
-        setAnimationData((prevData) => {
-          const newData = { ...prevData };
-          copiedKeyframes.forEach((ck) => {
-            if (!newData[ck.objectId]) newData[ck.objectId] = {};
-            if (!newData[ck.objectId][ck.property])
-              newData[ck.objectId][ck.property] = [];
-            newData[ck.objectId][ck.property].push(ck);
-          });
-          return newData;
-        });
-      } else if (isAlreadySelected && selectedKeyframes.length > 1) {
-        // Si el keyframe ya está seleccionado y hay múltiples seleccionados, mantener la selección
-        setDraggingKeyframe({ objectId, property, keyframeId });
+        return newData;
+      });
+    } else if (isAlreadySelected && selectedKeyframes.length > 1) {
+      // Si el keyframe ya está seleccionado y hay múltiples seleccionados, mantener la selección
+      setDraggingKeyframe({ objectId, property, keyframeId });
+    } else {
+      // Comportamiento existente para selección individual o nueva
+      setDraggingKeyframe({ objectId, property, keyframeId });
+      if (!isShiftPressed) {
+        setSelectedKeyframes([{ objectId, property, keyframeId }]);
       } else {
-        // Comportamiento existente para selección individual o nueva
-        setDraggingKeyframe({ objectId, property, keyframeId });
-        if (!isShiftPressed) {
-          setSelectedKeyframes([{ objectId, property, keyframeId }]);
-        } else {
-          setSelectedKeyframes((prev) => {
-            if (isAlreadySelected) {
-              return prev.filter(
-                (k) =>
-                  k.objectId !== objectId ||
-                  k.property !== property ||
-                  k.keyframeId !== keyframeId
-              );
-            }
-            return [...prev, { objectId, property, keyframeId }];
-          });
-        }
+        setSelectedKeyframes((prev) => {
+          if (isAlreadySelected) {
+            return prev.filter(
+              (k) => k.objectId !== objectId || k.property !== property || k.keyframeId !== keyframeId
+            );
+          }
+          return [...prev, { objectId, property, keyframeId }];
+        });
       }
-    };
+    }
+  };
 
-  const handleObjectBarMouseDown = (
-    objectId: string,
-    e: React.MouseEvent,
-    side: "left" | "right" | "middle"
-  ) => {
+  const handleObjectBarMouseDown = (objectId: string, e: React.MouseEvent, side: "left" | "right" | "middle") => {
     e.stopPropagation();
     setDraggingObjectBar({ objectId, side });
     const rect = timelineRef.current!.getBoundingClientRect();
@@ -423,10 +346,7 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
   };
 
   const handleTimelineMouseDown = (e: React.MouseEvent) => {
-    if (
-      timelineRef.current &&
-      (isShiftPressed || (isCtrlPressed && isShiftPressed))
-    ) {
+    if (timelineRef.current && (isShiftPressed || (isCtrlPressed && isShiftPressed))) {
       const rect = timelineRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top + timelineRef.current.scrollTop;
@@ -436,65 +356,54 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
     }
   };
 
-  const calculateObjectDuration = useCallback((objectId: string) => {
-    const objectKeyframes = animationData[objectId];
-    if (!objectKeyframes) return { start: 0, end: 0 };
+  const calculateObjectDuration = useCallback(
+    (objectId: string) => {
+      const objectKeyframes = animationData[objectId];
+      if (!objectKeyframes) return { start: 0, end: 0 };
 
-    let minFrame = Infinity;
-    let maxFrame = -Infinity;
+      let minFrame = Infinity;
+      let maxFrame = -Infinity;
 
-    Object.values(objectKeyframes).forEach((propertyKeyframes) => {
-      propertyKeyframes.forEach((keyframe) => {
-        minFrame = Math.min(minFrame, keyframe.frame);
-        maxFrame = Math.max(maxFrame, keyframe.frame);
+      Object.values(objectKeyframes).forEach((propertyKeyframes) => {
+        propertyKeyframes.forEach((keyframe) => {
+          minFrame = Math.min(minFrame, keyframe.frame);
+          maxFrame = Math.max(maxFrame, keyframe.frame);
+        });
       });
-    });
 
-    return {
-      start: minFrame === Infinity ? 0 : minFrame,
-      end: maxFrame === -Infinity ? 0 : maxFrame,
-    };
-  },[animationData]);
+      return {
+        start: minFrame === Infinity ? 0 : minFrame,
+        end: maxFrame === -Infinity ? 0 : maxFrame,
+      };
+    },
+    [animationData]
+  );
 
-  const handleTimelineMouseMove = useCallback( async (e: React.MouseEvent) => {
-    if (draggingObjectBar && timelineRef.current) {
-      const rect = timelineRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const newFrame = Math.max(
-        0,
-        Math.min(Math.round((x / rect.width) * totalFrames), totalFrames)
-      );
+  const handleTimelineMouseMove = useCallback(
+    async (e: React.MouseEvent) => {
+      if (draggingObjectBar && timelineRef.current) {
+        const rect = timelineRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const newFrame = Math.max(0, Math.min(Math.round((x / rect.width) * totalFrames), totalFrames));
 
-      if (dragStartFrame !== null) {
-        const { objectId, side } = draggingObjectBar;
-        const objectDuration = calculateObjectDuration(objectId);
+        if (dragStartFrame !== null) {
+          const { objectId, side } = draggingObjectBar;
+          const objectDuration = calculateObjectDuration(objectId);
 
-        setAnimationData((prevData) => {
-          const newData = { ...prevData };
-          Object.keys(newData[objectId]).forEach((property) => {
-            newData[objectId][property] = newData[objectId][property].map(
-              (keyframe) => {
-                console.log("XXX keyframe", keyframe);
+          setAnimationData((prevData) => {
+            const newData = { ...prevData };
+            Object.keys(newData[objectId]).forEach((property) => {
+              newData[objectId][property] = newData[objectId][property].map((keyframe) => {
                 let newKeyframeFrame: number;
 
                 if (side === "left") {
                   // Calcular la escala proporcional desde la izquierda
-                  const scale =
-                    (objectDuration.end - newFrame) /
-                    (objectDuration.end - objectDuration.start);
-                  newKeyframeFrame = Math.round(
-                    objectDuration.end -
-                      (objectDuration.end - keyframe.frame) * scale
-                  );
+                  const scale = (objectDuration.end - newFrame) / (objectDuration.end - objectDuration.start);
+                  newKeyframeFrame = Math.round(objectDuration.end - (objectDuration.end - keyframe.frame) * scale);
                 } else if (side === "right") {
                   // Calcular la escala proporcional desde la derecha
-                  const scale =
-                    (newFrame - objectDuration.start) /
-                    (objectDuration.end - objectDuration.start);
-                  newKeyframeFrame = Math.round(
-                    objectDuration.start +
-                      (keyframe.frame - objectDuration.start) * scale
-                  );
+                  const scale = (newFrame - objectDuration.start) / (objectDuration.end - objectDuration.start);
+                  newKeyframeFrame = Math.round(objectDuration.start + (keyframe.frame - objectDuration.start) * scale);
                 } else {
                   // Mover todos los keyframes (comportamiento existente)
                   const frameDiff = newFrame - dragStartFrame;
@@ -502,134 +411,115 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
                 }
 
                 // Asegurarse de que el nuevo frame esté dentro del rango permitido
-                newKeyframeFrame = Math.max(
-                  0,
-                  Math.min(newKeyframeFrame, totalFrames)
-                );
+                newKeyframeFrame = Math.max(0, Math.min(newKeyframeFrame, totalFrames));
 
                 return { ...keyframe, frame: newKeyframeFrame };
-              }
-            );
-          });
-          return newData;
-        });
-
-        setDragStartFrame(newFrame);
-      }
-    } else if (draggingKeyframe && timelineRef.current) {
-      const rect = timelineRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const newFrame = Math.max(
-        0,
-        Math.min(Math.round((x / rect.width) * totalFrames), totalFrames)
-      );
-      if (draggingKeyframe.isCopy && draggingKeyframe.copiedKeyframes) {
-        // Mover todos los keyframes copiados
-        const offset = newFrame - draggingKeyframe.copiedKeyframes[0].frame;
-        console.log(
-          "keyframe YES copied",
-          offset,
-          newFrame,
-          draggingKeyframe.copiedKeyframes[0].frame
-        );
-
-        setAnimationData((prevData) => {
-          const newData = { ...prevData };
-          draggingKeyframe.copiedKeyframes?.forEach((ck) => {
-            const keyframeIndex = newData[ck.objectId][ck.property].findIndex(
-              (k) => k.id === ck.id
-            );
-            if (keyframeIndex !== -1) {
-              newData[ck.objectId][ck.property][keyframeIndex] = {
-                ...newData[ck.objectId][ck.property][keyframeIndex],
-                frame: Math.max(0, Math.min(ck.frame + offset, totalFrames)),
-              };
-            }
-          });
-          return newData;
-        });
-      } else {
-        // Mover todos los keyframes seleccionados
-        const originalKeyframe = animationData[draggingKeyframe.objectId][
-          draggingKeyframe.property
-        ].find((k) => k.id === draggingKeyframe.keyframeId);
-      
-        if (originalKeyframe && dragStartFrame !== null) {
-          const offset = newFrame - dragStartFrame;
-
-          console.log(
-            "keyframe NO copied",
-            offset,
-            newFrame,
-            dragStartFrame
-          );
-
-          setAnimationData((prevData) => {
-            const newData = { ...prevData };
-            const originalPositions = new Map();
-            
-            // Primero, guardamos las posiciones originales
-            selectedKeyframes.forEach(({ objectId, property, keyframeId }) => {
-              const keyframe = prevData[objectId][property].find(k => k.id === keyframeId);
-              console.log("XXX originalPositions", originalPositions, keyframe!.frame)
-              if (keyframe) {
-                originalPositions.set(keyframeId, keyframe.frame);
-              }
-            });
-      
-            // Luego, actualizamos las posiciones basándonos en las posiciones originales
-       
-            selectedKeyframes.forEach(({ objectId, property, keyframeId }) => {
-              const keyframeIndex = newData[objectId][property].findIndex(
-                (k) => k.id === keyframeId
-              );
-
-              if (keyframeIndex !== -1) {
-                // Directly set the dragged keyframe's frame to newFrame
-                if (keyframeId === draggingKeyframe.keyframeId) {
-                  newData[objectId][property][keyframeIndex].frame = newFrame;
-                } else {
-                  // Apply offset to other selected keyframes
-                  const originalPosition = initialKeyframeFrames.get(keyframeId); // <-- Get initial frame
-                  const updatedFrame = Math.max(0, Math.min(originalPosition! + offset, totalFrames));
-                  newData[objectId][property][keyframeIndex].frame = updatedFrame;
-              
-                }
-              }
-            });
-      
-            // Ordenar keyframes después de actualizar
-            Object.keys(newData).forEach((objId) => {
-              Object.keys(newData[objId]).forEach((prop) => {
-                newData[objId][prop].sort((a, b) => a.frame - b.frame);
               });
             });
-            
             return newData;
           });
+
+          setDragStartFrame(newFrame);
         }
+      } else if (draggingKeyframe && timelineRef.current) {
+        const rect = timelineRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const newFrame = Math.max(0, Math.min(Math.round((x / rect.width) * totalFrames), totalFrames));
+        if (draggingKeyframe.isCopy && draggingKeyframe.copiedKeyframes) {
+          // Mover todos los keyframes copiados
+          const offset = newFrame - draggingKeyframe.copiedKeyframes[0].frame;
+          setAnimationData((prevData) => {
+            const newData = { ...prevData };
+            draggingKeyframe.copiedKeyframes?.forEach((ck) => {
+              const keyframeIndex = newData[ck.objectId][ck.property].findIndex((k) => k.id === ck.id);
+              if (keyframeIndex !== -1) {
+                newData[ck.objectId][ck.property][keyframeIndex] = {
+                  ...newData[ck.objectId][ck.property][keyframeIndex],
+                  frame: Math.max(0, Math.min(ck.frame + offset, totalFrames)),
+                };
+              }
+            });
+            return newData;
+          });
+        } else {
+          // Mover todos los keyframes seleccionados
+          const originalKeyframe = animationData[draggingKeyframe.objectId][draggingKeyframe.property].find(
+            (k) => k.id === draggingKeyframe.keyframeId
+          );
+
+          if (originalKeyframe && dragStartFrame !== null) {
+            const offset = newFrame - dragStartFrame;
+
+            setAnimationData((prevData) => {
+              const newData = { ...prevData };
+              const originalPositions = new Map();
+
+              // Primero, guardamos las posiciones originales
+              selectedKeyframes.forEach(({ objectId, property, keyframeId }) => {
+                const keyframe = prevData[objectId][property].find((k) => k.id === keyframeId);
+                console.log("XXX originalPositions", originalPositions, keyframe!.frame);
+                if (keyframe) {
+                  originalPositions.set(keyframeId, keyframe.frame);
+                }
+              });
+
+              // Luego, actualizamos las posiciones basándonos en las posiciones originales
+
+              selectedKeyframes.forEach(({ objectId, property, keyframeId }) => {
+                const keyframeIndex = newData[objectId][property].findIndex((k) => k.id === keyframeId);
+
+                if (keyframeIndex !== -1) {
+                  // Directly set the dragged keyframe's frame to newFrame
+                  if (keyframeId === draggingKeyframe.keyframeId) {
+                    newData[objectId][property][keyframeIndex].frame = newFrame;
+                  } else {
+                    // Apply offset to other selected keyframes
+                    const originalPosition = initialKeyframeFrames.get(keyframeId); // <-- Get initial frame
+                    const updatedFrame = Math.max(0, Math.min(originalPosition! + offset, totalFrames));
+                    newData[objectId][property][keyframeIndex].frame = updatedFrame;
+                  }
+                }
+              });
+
+              // Ordenar keyframes después de actualizar
+              Object.keys(newData).forEach((objId) => {
+                Object.keys(newData[objId]).forEach((prop) => {
+                  newData[objId][prop].sort((a, b) => a.frame - b.frame);
+                });
+              });
+
+              return newData;
+            });
+          }
+        }
+      } else if (regionSelection && timelineRef.current && (isShiftPressed || (isCtrlPressed && isShiftPressed))) {
+        const rect = timelineRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top + timelineRef.current.scrollTop;
+        setRegionSelection((prev) => ({ ...prev!, endX: x, endY: y }));
       }
-    } else if (
-      regionSelection &&
-      timelineRef.current &&
-      (isShiftPressed || (isCtrlPressed && isShiftPressed))
-    ) {
-      const rect = timelineRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top + timelineRef.current.scrollTop;
-      setRegionSelection((prev) => ({ ...prev!, endX: x, endY: y }));
-    }
-  }, [animationData, calculateObjectDuration, dragStartFrame, draggingKeyframe, draggingObjectBar, isCtrlPressed, isShiftPressed, regionSelection, selectedKeyframes, setAnimationData, totalFrames]);
+    },
+    [
+      animationData,
+      calculateObjectDuration,
+      dragStartFrame,
+      draggingKeyframe,
+      draggingObjectBar,
+      initialKeyframeFrames,
+      isCtrlPressed,
+      isShiftPressed,
+      regionSelection,
+      selectedKeyframes,
+      setAnimationData,
+      totalFrames,
+    ]
+  );
 
   const handleTimelineMouseUp = () => {
     setDraggingObjectBar(null);
     setDragStartFrame(null);
     setInitialKeyframeFrames(new Map());
-    if (
-      draggingKeyframe &&
-      draggingKeyframe.isCopy &&
-      draggingKeyframe.copiedKeyframes
-    ) {
+    if (draggingKeyframe && draggingKeyframe.isCopy && draggingKeyframe.copiedKeyframes) {
       // Mantener los keyframes copiados en sus nuevas posiciones
       setAnimationData((prevData) => {
         const newData = { ...prevData };
@@ -657,8 +547,7 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
                   (obj
                     ? collapsedObjects.has(obj.id)
                       ? OBJECT_HEIGHT
-                      : OBJECT_HEIGHT +
-                        Object.keys(obj.properties).length * PROPERTY_HEIGHT
+                      : OBJECT_HEIGHT + Object.keys(obj.properties).length * PROPERTY_HEIGHT
                     : 0)
                 );
               }, 0),
@@ -668,54 +557,32 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
           return objects
             .filter((obj) => directory.objects.includes(obj.id))
             .flatMap((obj, objIndex) => {
-              const objectTop = calculateObjectPosition(
-                objects,
-                objIndex,
-                collapsedObjects,
-                directory.objects
-              );
-              return Object.keys(obj.properties).flatMap(
-                (property, propIndex) => {
-                  const keyframes = animationData[obj.id]?.[property];
-                  if (!keyframes) return [];
-                  return keyframes
-                    .filter((keyframe) => {
-                      const keyframeX =
-                        (keyframe.frame / totalFrames) *
-                        timelineRef.current!.clientWidth;
-                      const keyframeY =
-                        directoryTop +
-                        DIRECTORY_HEIGHT +
-                        objectTop +
-                        (propIndex * PROPERTY_HEIGHT + OBJECT_HEIGHT) +
-                        PROPERTY_HEIGHT / 2;
-                      return (
-                        keyframeX >=
-                          Math.min(
-                            regionSelection.startX,
-                            regionSelection.endX
-                          ) &&
-                        keyframeX <=
-                          Math.max(
-                            regionSelection.startX,
-                            regionSelection.endX
-                          ) &&
-                        keyframeY >=
-                          Math.min(
-                            regionSelection.startY,
-                            regionSelection.endY
-                          ) &&
-                        keyframeY <=
-                          Math.max(regionSelection.startY, regionSelection.endY)
-                      );
-                    })
-                    .map((keyframe) => ({
-                      objectId: obj.id,
-                      property,
-                      keyframeId: keyframe.id,
-                    }));
-                }
-              );
+              const objectTop = calculateObjectPosition(objects, objIndex, collapsedObjects, directory.objects);
+              return Object.keys(obj.properties).flatMap((property, propIndex) => {
+                const keyframes = animationData[obj.id]?.[property];
+                if (!keyframes) return [];
+                return keyframes
+                  .filter((keyframe) => {
+                    const keyframeX = (keyframe.frame / totalFrames) * timelineRef.current!.clientWidth;
+                    const keyframeY =
+                      directoryTop +
+                      DIRECTORY_HEIGHT +
+                      objectTop +
+                      (propIndex * PROPERTY_HEIGHT + OBJECT_HEIGHT) +
+                      PROPERTY_HEIGHT / 2;
+                    return (
+                      keyframeX >= Math.min(regionSelection.startX, regionSelection.endX) &&
+                      keyframeX <= Math.max(regionSelection.startX, regionSelection.endX) &&
+                      keyframeY >= Math.min(regionSelection.startY, regionSelection.endY) &&
+                      keyframeY <= Math.max(regionSelection.startY, regionSelection.endY)
+                    );
+                  })
+                  .map((keyframe) => ({
+                    objectId: obj.id,
+                    property,
+                    keyframeId: keyframe.id,
+                  }));
+              });
             });
         })
         .filter(Boolean);
@@ -748,19 +615,16 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
         const newData = { ...prevData };
         selectedKeyframes.forEach(({ objectId, property, keyframeId }) => {
           if (newData[objectId] && newData[objectId][property]) {
-            newData[objectId][property] = newData[objectId][property].map(
-              (keyframe) =>
-                keyframe.id === keyframeId
-                  ? {
-                      ...keyframe,
-                      value: field.startsWith("value.")
-                        ? { ...keyframe.value, [field.split(".")[1]]: value }
-                        : keyframe.value,
-                      [field]: field.startsWith("value.")
-                        ? keyframe[field as keyof Keyframe]
-                        : value,
-                    }
-                  : keyframe
+            newData[objectId][property] = newData[objectId][property].map((keyframe) =>
+              keyframe.id === keyframeId
+                ? {
+                    ...keyframe,
+                    value: field.startsWith("value.")
+                      ? { ...keyframe.value, [field.split(".")[1]]: value }
+                      : keyframe.value,
+                    [field]: field.startsWith("value.") ? keyframe[field as keyof Keyframe] : value,
+                  }
+                : keyframe
             );
           }
         });
@@ -776,9 +640,7 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
       const newData = { ...prevData };
       selectedKeyframes.forEach(({ objectId, property, keyframeId }) => {
         if (newData[objectId] && newData[objectId][property]) {
-          newData[objectId][property] = newData[objectId][property].filter(
-            (keyframe) => keyframe.id !== keyframeId
-          );
+          newData[objectId][property] = newData[objectId][property].filter((keyframe) => keyframe.id !== keyframeId);
         }
       });
       return newData;
@@ -790,30 +652,19 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
     if (selectedKeyframes.length <= 1) return;
 
     const sortedKeyframes = [...selectedKeyframes].sort((a, b) => {
-      const frameA =
-        animationData[a.objectId][a.property].find((k) => k.id === a.keyframeId)
-          ?.frame || 0;
-      const frameB =
-        animationData[b.objectId][b.property].find((k) => k.id === b.keyframeId)
-          ?.frame || 0;
+      const frameA = animationData[a.objectId][a.property].find((k) => k.id === a.keyframeId)?.frame || 0;
+      const frameB = animationData[b.objectId][b.property].find((k) => k.id === b.keyframeId)?.frame || 0;
       return frameA - frameB;
     });
 
     const newFrames = sortedKeyframes
-      .map(
-        (sk) =>
-          animationData[sk.objectId][sk.property].find(
-            (k) => k.id === sk.keyframeId
-          )?.frame || 0
-      )
+      .map((sk) => animationData[sk.objectId][sk.property].find((k) => k.id === sk.keyframeId)?.frame || 0)
       .reverse();
 
     setAnimationData((prevData) => {
       const newData = { ...prevData };
       sortedKeyframes.forEach((sk, index) => {
-        const keyframeIndex = newData[sk.objectId][sk.property].findIndex(
-          (k) => k.id === sk.keyframeId
-        );
+        const keyframeIndex = newData[sk.objectId][sk.property].findIndex((k) => k.id === sk.keyframeId);
         if (keyframeIndex !== -1) {
           newData[sk.objectId][sk.property][keyframeIndex] = {
             ...newData[sk.objectId][sk.property][keyframeIndex],
@@ -859,9 +710,7 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
         if (!newData[targetObjectId]) {
           newData[targetObjectId] = {};
         }
-        newData[targetObjectId][property] = [
-          ...newData[sourceObjectId][property],
-        ];
+        newData[targetObjectId][property] = [...newData[sourceObjectId][property]];
       }
 
       // Si no se mantiene la fuente, eliminar la propiedad del objeto de origen
@@ -884,9 +733,7 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
             ...obj,
             properties: {
               ...obj.properties,
-              [property]: sourceObject
-                ? { ...sourceObject.properties[property] }
-                : { x: 0, y: 0, z: 0 },
+              [property]: sourceObject ? { ...sourceObject.properties[property] } : { x: 0, y: 0, z: 0 },
             },
           };
         }
@@ -900,10 +747,7 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
     });
   };
 
-  const moveObjectToDirectory = (
-    objectId: string,
-    targetDirectoryId: string
-  ) => {
+  const moveObjectToDirectory = (objectId: string, targetDirectoryId: string) => {
     setDirectories((prevDirs) => {
       const newDirs = prevDirs.map((dir) => {
         if (dir.id === targetDirectoryId) {
@@ -958,22 +802,11 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [
-    isCtrlPressed,
-    isShiftPressed,
-    deleteSelectedKeyframes,
-    invertSelectedKeyframes,
-  ]);
+  }, [isCtrlPressed, isShiftPressed, deleteSelectedKeyframes, invertSelectedKeyframes]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (
-        timelineRef.current &&
-        e.buttons === 1 &&
-        !draggingKeyframe &&
-        !isShiftPressed &&
-        !isCtrlPressed
-      ) {
+      if (timelineRef.current && e.buttons === 1 && !draggingKeyframe && !isShiftPressed && !isCtrlPressed) {
         const rect = timelineRef.current.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const frame = Math.round((x / rect.width) * totalFrames);
@@ -1002,10 +835,7 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
 
         if (index > 0) {
           const prevKeyframe = keyframes[index - 1];
-          if (
-            JSON.stringify(keyframe.value) !==
-            JSON.stringify(prevKeyframe.value)
-          ) {
+          if (JSON.stringify(keyframe.value) !== JSON.stringify(prevKeyframe.value)) {
             const x1 = (prevKeyframe.frame / totalFrames) * 100;
             const x2 = (keyframe.frame / totalFrames) * 100;
             lines.push(
@@ -1024,10 +854,7 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
 
         if (index < keyframes.length - 1) {
           const nextKeyframe = keyframes[index + 1];
-          if (
-            JSON.stringify(keyframe.value) !==
-            JSON.stringify(nextKeyframe.value)
-          ) {
+          if (JSON.stringify(keyframe.value) !== JSON.stringify(nextKeyframe.value)) {
             const x1 = (keyframe.frame / totalFrames) * 100;
             const x2 = (nextKeyframe.frame / totalFrames) * 100;
             lines.push(
@@ -1129,29 +956,16 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
                 </React.Fragment>
               ))}
               {/* Current frame indicator */}
-              <div
-                className="current-frame-indicator"
-                style={{ left: `${(currentFrame / totalFrames) * 100}%` }}
-              />
+              <div className="current-frame-indicator" style={{ left: `${(currentFrame / totalFrames) * 100}%` }} />
               {/* Region selection */}
               {regionSelection && (
                 <div
                   className="absolute bg-blue-200 opacity-50 border-2 border-blue-500"
                   style={{
-                    left: `${Math.min(
-                      regionSelection.startX,
-                      regionSelection.endX
-                    )}px`,
-                    top: `${Math.min(
-                      regionSelection.startY,
-                      regionSelection.endY
-                    )}px`,
-                    width: `${Math.abs(
-                      regionSelection.endX - regionSelection.startX
-                    )}px`,
-                    height: `${Math.abs(
-                      regionSelection.endY - regionSelection.startY
-                    )}px`,
+                    left: `${Math.min(regionSelection.startX, regionSelection.endX)}px`,
+                    top: `${Math.min(regionSelection.startY, regionSelection.endY)}px`,
+                    width: `${Math.abs(regionSelection.endX - regionSelection.startX)}px`,
+                    height: `${Math.abs(regionSelection.endY - regionSelection.startY)}px`,
                   }}
                 />
               )}
@@ -1168,18 +982,14 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
                         (obj
                           ? collapsedObjects.has(obj.id)
                             ? OBJECT_HEIGHT
-                            : OBJECT_HEIGHT +
-                              Object.keys(obj.properties).length *
-                                PROPERTY_HEIGHT
+                            : OBJECT_HEIGHT + Object.keys(obj.properties).length * PROPERTY_HEIGHT
                           : 0)
                       );
                     }, 0),
                   0
                 );
 
-                const directoryObjects = objects.filter((obj) =>
-                  directory.objects.includes(obj.id)
-                );
+                const directoryObjects = objects.filter((obj) => directory.objects.includes(obj.id));
                 const directoryHeight =
                   DIRECTORY_HEIGHT +
                   directoryObjects.reduce(
@@ -1187,8 +997,7 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
                       acc +
                       (collapsedObjects.has(obj.id)
                         ? OBJECT_HEIGHT
-                        : OBJECT_HEIGHT +
-                          Object.keys(obj.properties).length * PROPERTY_HEIGHT),
+                        : OBJECT_HEIGHT + Object.keys(obj.properties).length * PROPERTY_HEIGHT),
                     0
                   );
 
@@ -1205,21 +1014,13 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
                     <div
                       className="absolute h-2 bg-purple-500"
                       style={{
-                        left: `${
-                          (directory.currentFrame / totalFrames) * 100
-                        }%`,
-                        width: `${
-                          ((getLastKeyframeFrame() - directory.currentFrame) /
-                            totalFrames) *
-                          100
-                        }%`,
+                        left: `${(directory.currentFrame / totalFrames) * 100}%`,
+                        width: `${((getLastKeyframeFrame() - directory.currentFrame) / totalFrames) * 100}%`,
                         top: "0",
                         height: `${DIRECTORY_HEIGHT}px`,
                       }}
                     >
-                      <span className="absolute left-2 top-1 text-xs text-white">
-                        {directory.name}
-                      </span>
+                      <span className="absolute left-2 top-1 text-xs text-white">{directory.name}</span>
                     </div>
                     {/* Objects and keyframes */}
                     {objects
@@ -1235,9 +1036,7 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
                         const isCollapsed = collapsedObjects.has(obj.id);
                         const objectHeight = isCollapsed
                           ? OBJECT_HEIGHT
-                          : OBJECT_HEIGHT +
-                            Object.keys(obj.properties).length *
-                              PROPERTY_HEIGHT;
+                          : OBJECT_HEIGHT + Object.keys(obj.properties).length * PROPERTY_HEIGHT;
 
                         return (
                           <div
@@ -1253,103 +1052,69 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
                               className="absolute bg-gray-300 cursor-move"
                               style={{
                                 left: `${(start / totalFrames) * 100}%`,
-                                width: `${
-                                  ((end - start) / totalFrames) * 100
-                                }%`,
+                                width: `${((end - start) / totalFrames) * 100}%`,
                                 height: "8px",
                                 top: `${OBJECT_HEIGHT / 2 - 4}px`,
                               }}
-                              onMouseDown={(e) =>
-                                handleObjectBarMouseDown(obj.id, e, "middle")
-                              }
+                              onMouseDown={(e) => handleObjectBarMouseDown(obj.id, e, "middle")}
                             >
                               {/* Left handle */}
                               <div
                                 className="absolute left-0 top-0 bottom-0 w-2 bg-blue-500 cursor-ew-resize"
-                                onMouseDown={(e) =>
-                                  handleObjectBarMouseDown(obj.id, e, "left")
-                                }
+                                onMouseDown={(e) => handleObjectBarMouseDown(obj.id, e, "left")}
                               />
                               {/* Right handle */}
                               <div
                                 className="absolute right-0 top-0 bottom-0 w-2 bg-blue-500 cursor-ew-resize"
-                                onMouseDown={(e) =>
-                                  handleObjectBarMouseDown(obj.id, e, "right")
-                                }
+                                onMouseDown={(e) => handleObjectBarMouseDown(obj.id, e, "right")}
                               />
                             </div>
                             {!isCollapsed &&
-                              Object.keys(obj.properties).map(
-                                (property, propIndex) => (
-                                  <div
-                                    key={`${obj.id}-${property}`}
-                                    className="absolute left-0 right-0"
-                                    style={{
-                                      top: `${
-                                        propIndex * PROPERTY_HEIGHT +
-                                        OBJECT_HEIGHT
-                                      }px`,
-                                      height: `${PROPERTY_HEIGHT}px`,
-                                    }}
-                                  >
-                                    <svg className="absolute inset-0 w-full h-full">
-                                      {renderKeyframeLines(
-                                        obj.id,
-                                        property,
-                                        animationData[obj.id]?.[property] || []
-                                      )}
-                                    </svg>
-                                    {animationData[obj.id]?.[property]?.map(
-                                      (keyframe) => {
-                                        const isSelected =
-                                          selectedKeyframes.some(
-                                            (sk) =>
-                                              sk.objectId === obj.id &&
-                                              sk.property === property &&
-                                              sk.keyframeId === keyframe.id
-                                          );
-                                        const isLastSelected =
-                                          selectedKeyframes.length > 0 &&
-                                          selectedKeyframes[
-                                            selectedKeyframes.length - 1
-                                          ].objectId === obj.id &&
-                                          selectedKeyframes[
-                                            selectedKeyframes.length - 1
-                                          ].property === property &&
-                                          selectedKeyframes[
-                                            selectedKeyframes.length - 1
-                                          ].keyframeId === keyframe.id;
-                                        return (
-                                          <div
-                                            key={keyframe.id}
-                                            className={`absolute w-3 h-3 cursor-move ${
-                                              isLastSelected
-                                                ? "bg-yellow-500"
-                                                : isSelected
-                                                ? "bg-yellow-300"
-                                                : "bg-blue-500"
-                                            }`}
-                                            style={{
-                                              left: `${
-                                                (keyframe.frame / totalFrames) *
-                                                100
-                                              }%`,
-                                              top: "50%",
-                                              transform:
-                                                "translate(-50%, -50%)",
-                                            }}
-                                            onMouseDown={handleKeyframeMouseDown(
-                                              obj.id,
-                                              property,
-                                              keyframe.id
-                                            )}
-                                          />
-                                        );
-                                      }
-                                    )}
-                                  </div>
-                                )
-                              )}
+                              Object.keys(obj.properties).map((property, propIndex) => (
+                                <div
+                                  key={`${obj.id}-${property}`}
+                                  className="absolute left-0 right-0"
+                                  style={{
+                                    top: `${propIndex * PROPERTY_HEIGHT + OBJECT_HEIGHT}px`,
+                                    height: `${PROPERTY_HEIGHT}px`,
+                                  }}
+                                >
+                                  <svg className="absolute inset-0 w-full h-full">
+                                    {renderKeyframeLines(obj.id, property, animationData[obj.id]?.[property] || [])}
+                                  </svg>
+                                  {animationData[obj.id]?.[property]?.map((keyframe) => {
+                                    const isSelected = selectedKeyframes.some(
+                                      (sk) =>
+                                        sk.objectId === obj.id &&
+                                        sk.property === property &&
+                                        sk.keyframeId === keyframe.id
+                                    );
+                                    const isLastSelected =
+                                      selectedKeyframes.length > 0 &&
+                                      selectedKeyframes[selectedKeyframes.length - 1].objectId === obj.id &&
+                                      selectedKeyframes[selectedKeyframes.length - 1].property === property &&
+                                      selectedKeyframes[selectedKeyframes.length - 1].keyframeId === keyframe.id;
+                                    return (
+                                      <div
+                                        key={keyframe.id}
+                                        className={`absolute w-3 h-3 cursor-move ${
+                                          isLastSelected
+                                            ? "bg-yellow-500"
+                                            : isSelected
+                                              ? "bg-yellow-300"
+                                              : "bg-blue-500"
+                                        }`}
+                                        style={{
+                                          left: `${(keyframe.frame / totalFrames) * 100}%`,
+                                          top: "50%",
+                                          transform: "translate(-50%, -50%)",
+                                        }}
+                                        onMouseDown={handleKeyframeMouseDown(obj.id, property, keyframe.id)}
+                                      />
+                                    );
+                                  })}
+                                </div>
+                              ))}
                           </div>
                         );
                       })}
@@ -1369,9 +1134,7 @@ const [initialKeyframeFrames, setInitialKeyframeFrames] = useState<Map<string, n
             <h3 className="keyframe-values-title">Keyframe Values</h3>{" "}
             {selectedKeyframes.length > 0 ? (
               selectedKeyframes.map(({ objectId, property, keyframeId }) => {
-                const keyframe = animationData[objectId]?.[property]?.find(
-                  (k) => k.id === keyframeId
-                );
+                const keyframe = animationData[objectId]?.[property]?.find((k) => k.id === keyframeId);
                 return keyframe ? (
                   <div key={keyframeId} className="mb-2">
                     <p className="font-medium">{`${objectId} - ${property}`}</p>
