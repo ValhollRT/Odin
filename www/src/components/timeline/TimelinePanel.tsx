@@ -337,9 +337,27 @@ export default function AnimationTimelineEditor() {
     }
   };
 
+  const handleObjectBarMouseUp = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDraggingObjectBar(null);
+    setInitialKeyframeFrames(new Map());
+    setDragStartFrame(null);
+  };
+
   const handleObjectBarMouseDown = (objectId: string, e: React.MouseEvent, side: "left" | "right" | "middle") => {
     e.stopPropagation();
     setDraggingObjectBar({ objectId, side });
+
+    const objectKeyframes = animationData[objectId];
+
+    const initialFrames = new Map<string, number>();
+    for (const property in objectKeyframes) {
+      objectKeyframes[property].forEach((keyframe) => {
+        initialFrames.set(keyframe.id, keyframe.frame);
+      });
+    }
+    setInitialKeyframeFrames(initialFrames);
+
     const rect = timelineRef.current!.getBoundingClientRect();
     const x = e.clientX - rect.left;
     setDragStartFrame(Math.round((x / rect.width) * totalFrames));
@@ -407,7 +425,7 @@ export default function AnimationTimelineEditor() {
                 } else {
                   // Mover todos los keyframes (comportamiento existente)
                   const frameDiff = newFrame - dragStartFrame;
-                  newKeyframeFrame = keyframe.frame + frameDiff;
+                  newKeyframeFrame = initialKeyframeFrames.get(keyframe.id)! + frameDiff;
                 }
 
                 // Asegurarse de que el nuevo frame esté dentro del rango permitido
@@ -457,7 +475,6 @@ export default function AnimationTimelineEditor() {
               // Primero, guardamos las posiciones originales
               selectedKeyframes.forEach(({ objectId, property, keyframeId }) => {
                 const keyframe = prevData[objectId][property].find((k) => k.id === keyframeId);
-                console.log("XXX originalPositions", originalPositions, keyframe!.frame);
                 if (keyframe) {
                   originalPositions.set(keyframeId, keyframe.frame);
                 }
@@ -1067,6 +1084,7 @@ export default function AnimationTimelineEditor() {
                               <div
                                 className="absolute right-0 top-0 bottom-0 w-2 bg-blue-500 cursor-ew-resize"
                                 onMouseDown={(e) => handleObjectBarMouseDown(obj.id, e, "right")}
+                                onMouseUp={handleObjectBarMouseUp}
                               />
                             </div>
                             {!isCollapsed &&
