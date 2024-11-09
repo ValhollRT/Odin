@@ -1,8 +1,6 @@
 import { Object3D } from "./interfaces";
 
-export const OBJECT_HEIGHT = 30;
-export const PROPERTY_HEIGHT = 30;
-export const DIRECTORY_HEIGHT = 30;
+export const TRACK_HEIGHT = 30;
 export const INITIAL_GRID_SPACING = 10;
 export const ICON_UI_SIZE = 18;
 
@@ -20,9 +18,9 @@ export const calculateObjectPosition = (
     const obj = objects.find((o) => o.id === objId);
     if (obj) {
       if (collapsedObjects.has(obj.id)) {
-        totalHeight += OBJECT_HEIGHT;
+        totalHeight += TRACK_HEIGHT;
       } else {
-        totalHeight += OBJECT_HEIGHT + Object.keys(obj.properties).length * PROPERTY_HEIGHT;
+        totalHeight += TRACK_HEIGHT + Object.keys(obj.properties).length * TRACK_HEIGHT;
       }
     }
   }

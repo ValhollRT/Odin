@@ -6,10 +6,8 @@ import { ObjectPanel } from "./ObjectPanel";
 import { PlaybackControls } from "./PlaybackControls";
 import { TopMenu } from "./TopMenu";
 import {
-  DIRECTORY_HEIGHT,
   INITIAL_GRID_SPACING,
-  OBJECT_HEIGHT,
-  PROPERTY_HEIGHT,
+  TRACK_HEIGHT,
   calculateObjectPosition,
   interpolateValue,
 } from "./utils";
@@ -250,8 +248,6 @@ export default function AnimationTimelineEditor() {
 
   const handleKeyframeMouseDown = (objectId: string, property: string, keyframeId: string) => (e: React.MouseEvent) => {
     e.stopPropagation();
-
-    console.log("handleKeyframeMouseDown");
     const isAlreadySelected = selectedKeyframes.some(
       (sk) => sk.objectId === objectId && sk.property === property && sk.keyframeId === keyframeId
     );
@@ -259,8 +255,6 @@ export default function AnimationTimelineEditor() {
     const rect = timelineRef.current!.getBoundingClientRect();
     const x = e.clientX - rect.left;
     setDragStartFrame(Math.round((x / rect.width) * totalFrames));
-
-    console.log("XXX handleKeyframeMouseDown", isAlreadySelected);
 
     // Store initial frames of selected keyframes
     const initialFrames = new Map<string, number>();
@@ -436,8 +430,6 @@ export default function AnimationTimelineEditor() {
             });
             return newData;
           });
-
-          setDragStartFrame(newFrame);
         }
       } else if (draggingKeyframe && timelineRef.current) {
         const rect = timelineRef.current.getBoundingClientRect();
@@ -481,7 +473,6 @@ export default function AnimationTimelineEditor() {
               });
 
               // Luego, actualizamos las posiciones basándonos en las posiciones originales
-
               selectedKeyframes.forEach(({ objectId, property, keyframeId }) => {
                 const keyframeIndex = newData[objectId][property].findIndex((k) => k.id === keyframeId);
 
@@ -556,15 +547,15 @@ export default function AnimationTimelineEditor() {
           const directoryTop = directories.slice(0, dirIndex).reduce(
             (acc, dir) =>
               acc +
-              DIRECTORY_HEIGHT +
+              TRACK_HEIGHT +
               dir.objects.reduce((objAcc, objId) => {
                 const obj = objects.find((o) => o.id === objId);
                 return (
                   objAcc +
                   (obj
                     ? collapsedObjects.has(obj.id)
-                      ? OBJECT_HEIGHT
-                      : OBJECT_HEIGHT + Object.keys(obj.properties).length * PROPERTY_HEIGHT
+                      ? TRACK_HEIGHT
+                      : TRACK_HEIGHT + Object.keys(obj.properties).length * TRACK_HEIGHT
                     : 0)
                 );
               }, 0),
@@ -583,10 +574,10 @@ export default function AnimationTimelineEditor() {
                     const keyframeX = (keyframe.frame / totalFrames) * timelineRef.current!.clientWidth;
                     const keyframeY =
                       directoryTop +
-                      DIRECTORY_HEIGHT +
+                      TRACK_HEIGHT +
                       objectTop +
-                      (propIndex * PROPERTY_HEIGHT + OBJECT_HEIGHT) +
-                      PROPERTY_HEIGHT / 2;
+                      (propIndex * TRACK_HEIGHT + TRACK_HEIGHT) +
+                      TRACK_HEIGHT / 2;
                     return (
                       keyframeX >= Math.min(regionSelection.startX, regionSelection.endX) &&
                       keyframeX <= Math.max(regionSelection.startX, regionSelection.endX) &&
@@ -700,6 +691,7 @@ export default function AnimationTimelineEditor() {
   }, [animationData, selectedKeyframes]);
 
   const toggleObjectCollapse = (objectId: string) => {
+    console.log("toggleObjectCollapse", objectId);
     setCollapsedObjects((prevCollapsed) => {
       const newCollapsed = new Set(prevCollapsed);
       if (newCollapsed.has(objectId)) {
@@ -991,15 +983,15 @@ export default function AnimationTimelineEditor() {
                 const directoryTop = directories.slice(0, dirIndex).reduce(
                   (acc, dir) =>
                     acc +
-                    DIRECTORY_HEIGHT +
+                    TRACK_HEIGHT +
                     dir.objects.reduce((objAcc, objId) => {
                       const obj = objects.find((o) => o.id === objId);
                       return (
                         objAcc +
                         (obj
                           ? collapsedObjects.has(obj.id)
-                            ? OBJECT_HEIGHT
-                            : OBJECT_HEIGHT + Object.keys(obj.properties).length * PROPERTY_HEIGHT
+                            ? TRACK_HEIGHT
+                            : TRACK_HEIGHT + Object.keys(obj.properties).length * TRACK_HEIGHT
                           : 0)
                       );
                     }, 0),
@@ -1008,13 +1000,13 @@ export default function AnimationTimelineEditor() {
 
                 const directoryObjects = objects.filter((obj) => directory.objects.includes(obj.id));
                 const directoryHeight =
-                  DIRECTORY_HEIGHT +
+                  TRACK_HEIGHT +
                   directoryObjects.reduce(
                     (acc, obj) =>
                       acc +
                       (collapsedObjects.has(obj.id)
-                        ? OBJECT_HEIGHT
-                        : OBJECT_HEIGHT + Object.keys(obj.properties).length * PROPERTY_HEIGHT),
+                        ? TRACK_HEIGHT
+                        : TRACK_HEIGHT + Object.keys(obj.properties).length * TRACK_HEIGHT),
                     0
                   );
 
@@ -1034,7 +1026,7 @@ export default function AnimationTimelineEditor() {
                         left: `${(directory.currentFrame / totalFrames) * 100}%`,
                         width: `${((getLastKeyframeFrame() - directory.currentFrame) / totalFrames) * 100}%`,
                         top: "0",
-                        height: `${DIRECTORY_HEIGHT}px`,
+                        height: `${TRACK_HEIGHT}px`,
                       }}
                     >
                       <span className="absolute left-2 top-1 text-xs text-white">{directory.name}</span>
@@ -1052,15 +1044,15 @@ export default function AnimationTimelineEditor() {
                         const { start, end } = calculateObjectDuration(obj.id);
                         const isCollapsed = collapsedObjects.has(obj.id);
                         const objectHeight = isCollapsed
-                          ? OBJECT_HEIGHT
-                          : OBJECT_HEIGHT + Object.keys(obj.properties).length * PROPERTY_HEIGHT;
+                          ? TRACK_HEIGHT
+                          : TRACK_HEIGHT + Object.keys(obj.properties).length * TRACK_HEIGHT;
 
                         return (
                           <div
                             key={obj.id}
                             className="absolute left-0 right-0"
                             style={{
-                              top: `${objectTop + DIRECTORY_HEIGHT}px`,
+                              top: `${objectTop + TRACK_HEIGHT}px`,
                               height: `${objectHeight}px`,
                             }}
                           >
@@ -1071,18 +1063,18 @@ export default function AnimationTimelineEditor() {
                                 left: `${(start / totalFrames) * 100}%`,
                                 width: `${((end - start) / totalFrames) * 100}%`,
                                 height: "8px",
-                                top: `${OBJECT_HEIGHT / 2 - 4}px`,
+                                top: `${TRACK_HEIGHT / 2 - 4}px`,
                               }}
                               onMouseDown={(e) => handleObjectBarMouseDown(obj.id, e, "middle")}
                             >
                               {/* Left handle */}
                               <div
-                                className="absolute left-0 top-0 bottom-0 w-2 bg-blue-500 cursor-ew-resize"
+                                className="handleObjectBar handleObjectBar-right"
                                 onMouseDown={(e) => handleObjectBarMouseDown(obj.id, e, "left")}
                               />
                               {/* Right handle */}
                               <div
-                                className="absolute right-0 top-0 bottom-0 w-2 bg-blue-500 cursor-ew-resize"
+                                className="handleObjectBar handleObjectBar-left"
                                 onMouseDown={(e) => handleObjectBarMouseDown(obj.id, e, "right")}
                                 onMouseUp={handleObjectBarMouseUp}
                               />
@@ -1093,8 +1085,8 @@ export default function AnimationTimelineEditor() {
                                   key={`${obj.id}-${property}`}
                                   className="absolute left-0 right-0"
                                   style={{
-                                    top: `${propIndex * PROPERTY_HEIGHT + OBJECT_HEIGHT}px`,
-                                    height: `${PROPERTY_HEIGHT}px`,
+                                    top: `${propIndex * TRACK_HEIGHT + TRACK_HEIGHT}px`,
+                                    height: `${TRACK_HEIGHT}px`,
                                   }}
                                 >
                                   <svg className="absolute inset-0 w-full h-full">

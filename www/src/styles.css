@@ -699,8 +699,24 @@ code {
   background:red
 }
 
-/* ... otros estilos ... */
+.handleObjectBar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0.5rem;
+  background-color: #bfdbfe;
+  cursor: ew-resize;
+}
 
+.handleObjectBar-right {
+  right: 0;
+}
+
+.handleObjectBar-left {
+  left: 0;
+}
+
+/* ... otros estilos ... */
 .bg-yellow-500 {
   background-color: #eab308;
 }

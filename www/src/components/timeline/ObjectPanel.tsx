@@ -2,7 +2,7 @@ import { ChevronRight, ChevronDown } from "lucide-react";
 import React, { useState } from "react";
 import { ContextMenu, ContextMenuItem } from "../ui/ContextMenu";
 import { Object3D, Directory } from "./interfaces";
-import { DIRECTORY_HEIGHT } from "./utils";
+import { TRACK_HEIGHT } from "./utils";
 import { useAppContext } from "../../context/AppContext";
 
 export const ObjectItem: React.FC<{
@@ -11,7 +11,8 @@ export const ObjectItem: React.FC<{
   onDrop: (targetDirectoryId: string, targetObjectId?: string) => (e: React.DragEvent) => void;
   handleDragOver: (e: React.DragEvent) => void;
   handleDragStart: (objectId: string, property?: string) => (e: React.DragEvent) => void;
-}> = ({ object, directoryId, onDrop, handleDragOver, handleDragStart }) => {
+  onToggleCollapse: (objectId: string) => void;
+}> = ({ object, directoryId, onDrop, handleDragOver, handleDragStart, onToggleCollapse }) => {
   const { addProperty } = useAppContext(); // Contexto de aplicación para añadir propiedades
   const [collapsed, setCollapsed] = useState(false);
   const propertiesMock = ["translate", "rotate", "scale", "center"];
@@ -27,9 +28,14 @@ export const ObjectItem: React.FC<{
           onDragOver={handleDragOver}
           onDrop={onDrop(directoryId, object.id)}
           onContextMenu={(e) => e.preventDefault()} // Desactiva el menú contextual nativo
-          style={{ height: `${DIRECTORY_HEIGHT}px` }}
+          style={{ height: `${TRACK_HEIGHT}px` }}
         >
-          <span onClick={() => setCollapsed(!collapsed)} className="object-toggle">
+          <span onClick={ e => {
+            e.stopPropagation();
+            onToggleCollapse(object.id);
+            setCollapsed(!collapsed)
+          }
+            } className="object-toggle">
             {collapsed ? <ChevronRight /> : <ChevronDown />}
           </span>
           <span>{object.name}</span>
@@ -62,7 +68,7 @@ export const ObjectProperties: React.FC<{
       {Object.entries(properties).map(([key, value]) => (
         <ContextMenu key={`${key}-${objectId}`}>
           <div
-            style={{ height: `${DIRECTORY_HEIGHT}px` }}
+            style={{ height: `${TRACK_HEIGHT}px` }}
             className={`property-button ${
               selectedProperty?.objectId === objectId && selectedProperty?.property === key
                 ? "property-button-selected"
@@ -134,7 +140,7 @@ export const ObjectPanel: React.FC<{
               onDragOver={handleDragOver}
               onDrop={handleDrop(directory.id)}
               className="directory-header"
-              style={{ height: `${DIRECTORY_HEIGHT}px` }}
+              style={{ height: `${TRACK_HEIGHT}px` }}
             >
               {directory.name}
             </div>
@@ -148,6 +154,7 @@ export const ObjectPanel: React.FC<{
                   onDrop={handleDrop}
                   handleDragOver={handleDragOver}
                   handleDragStart={handleDragStart}
+                  onToggleCollapse={onToggleCollapse}
                 />
               ))}
           </>
