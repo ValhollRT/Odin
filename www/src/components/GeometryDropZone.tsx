@@ -1,11 +1,12 @@
-import { Color3, HighlightLayer, StandardMaterial } from "@babylonjs/core";
+import { Color3, HighlightLayer, Mesh, StandardMaterial } from "@babylonjs/core";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Geometry, useAppContext } from "../context/AppContext";
-import { createGeometry, geometryData } from "./GeometryFactory";
+import { Container, useAppContext } from "../context/AppContext";
+import { createGeometry, geometryData } from "../engine/GeometryFactory";
+import SceneTree from "./sceneTree/sceneTree";
 
 const GeometryDropZone = () => {
-  const { scene, geometries, setGeometries, selectedGeometries, setSelectedGeometries } = useAppContext();
+  const { scene, containers, setContainers, selectedGeometries, setSelectedGeometries, meshes, setMeshes } = useAppContext();
   const [highlightLayer, setHighlightLayer] = useState<HighlightLayer | null>(null);
 
   useEffect(() => {
@@ -29,17 +30,18 @@ const GeometryDropZone = () => {
       const typeData = geometryData.find((data) => data.name.toLowerCase() === geometryType); // Busca la geometría en geometryData
 
       if (typeData && scene) {
-        const mesh = createGeometry(scene, typeData); // Utiliza createGeometry
+        const mesh = createGeometry(scene, typeData);
+        
+        mesh && setMeshes(prev => [...prev, mesh]);
+    
         if (mesh) {
-          const newGeometry: Geometry = {
+          const newGeometry: Container = {
             id: Number(mesh.id),
-            type: typeData.name.toLowerCase(),
-            meshName: mesh.name,
-            parentId: targetGeometryId, // Asigna parentId si se proporciona
-            children: [],
+            name: mesh.name,
             isExpanded: true,
+            meshId: mesh.id,
           };
-          setGeometries((prev) => [...prev, newGeometry]);
+          setContainers((prev) => [...prev, newGeometry]);
         }
       }
     } else if (color && targetGeometryId !== undefined) {
@@ -48,8 +50,10 @@ const GeometryDropZone = () => {
       reorganizeGeometries(parseInt(draggedGeometryId), targetGeometryId);
     }
   };
+  
   const handleDragStart = (e: React.DragEvent, geometryId: number) => {
-    e.dataTransfer.setData("geometryId", geometryId.toString());
+    // e.dataTransfer.setData("geometryId", geometryId.toString());
+    console.log("handleDragStart", e.dataTransfer, geometryId);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -59,10 +63,10 @@ const GeometryDropZone = () => {
   const applyColor = (geometryId: number, color: string) => {
     if (!scene) return;
 
-    setGeometries((prev) =>
+    setContainers((prev) =>
       prev.map((g) => {
         if (g.id === geometryId) {
-          const mesh = scene.getMeshByName(g.meshName);
+          const mesh = scene.getMeshByName(g.name);
           if (mesh) {
             const material = new StandardMaterial(`material-${g.id}`, scene);
             material.diffuseColor = Color3.FromHexString(color);
@@ -96,7 +100,7 @@ const GeometryDropZone = () => {
 
     highlightLayer.removeAllMeshes();
     selectedGeometries.forEach((id) => {
-      const mesh = scene.getMeshByName(geometries.find((g) => g.id === id)?.meshName || "");
+      const mesh = scene.getMeshByName(containers.find((g) => g.id === id)?.name || "");
       if (mesh) {
         highlightLayer.addMesh(mesh as any, Color3.Yellow());
       }
@@ -104,69 +108,12 @@ const GeometryDropZone = () => {
   };
 
   const reorganizeGeometries = (draggedId: number, targetId: number) => {
-    setGeometries((prev) => {
-      const newGeometries = [...prev];
-      const draggedIndex = newGeometries.findIndex((g) => g.id === draggedId);
-      const targetIndex = newGeometries.findIndex((g) => g.id === targetId);
-
-      if (draggedIndex !== -1 && targetIndex !== -1) {
-        const [draggedGeometry] = newGeometries.splice(draggedIndex, 1);
-        draggedGeometry.parentId = targetId;
-        newGeometries[targetIndex].children.push(draggedId);
-        newGeometries.splice(targetIndex + 1, 0, draggedGeometry);
-      }
-
-      return newGeometries;
-    });
-
-    if (scene) {
-      const draggedMesh = scene.getMeshByName(geometries.find((g) => g.id === draggedId)?.meshName || "");
-      const targetMesh = scene.getMeshByName(geometries.find((g) => g.id === targetId)?.meshName || "");
-      if (draggedMesh && targetMesh) {
-        draggedMesh.parent = targetMesh;
-      }
-    }
-  };
-
-  const toggleExpand = (geometryId: number) => {
-    setGeometries((prev) => prev.map((g) => (g.id === geometryId ? { ...g, isExpanded: !g.isExpanded } : g)));
-  };
-
-  const renderGeometryItem = (geometry: Geometry, level: number = 0) => {
-    const hasChildren = geometry.children.length > 0;
-    const childGeometries = geometries.filter((g) => g.parentId === geometry.id);
-
-    return (
-      <div key={geometry.id} style={{ marginLeft: `${level * 20}px` }}>
-        <div
-          className={`geometry-item mb-2 p-2 rounded cursor-pointer transition-colors duration-200 
-            ${selectedGeometries.includes(geometry.id) ? "selected" : ""}
-          `}
-          draggable
-          onDragStart={(e) => handleDragStart(e, geometry.id)}
-          onDrop={(e) => handleDrop(e, geometry.id)}
-          onDragOver={handleDragOver}
-          onClick={(e) => handleGeometryClick(geometry.id, e)}
-        >
-          <div className="geometry-item-content">
-            {hasChildren && (
-              <button onClick={() => toggleExpand(geometry.id)} className="geometry-item-toggle">
-                {geometry.isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-              </button>
-            )}
-            <h3>{geometry.type}</h3>
-          </div>
-          {geometry.color && <p>Color: {geometry.color}</p>}
-        </div>
-        {hasChildren && geometry.isExpanded && childGeometries.map((child) => renderGeometryItem(child, level + 1))}
-      </div>
-    );
+    console.log(draggedId, targetId);
   };
 
   return (
     <div onDrop={(e) => handleDrop(e)} onDragOver={handleDragOver} className="component geometry-dropzone">
-      <h2>Geometrías Creadas</h2>
-      {geometries.filter((g) => !g.parentId).map((geometry) => renderGeometryItem(geometry))}
+      <SceneTree/>
     </div>
   );
 };

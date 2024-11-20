@@ -1,22 +1,22 @@
-import { type Scene } from "@babylonjs/core";
+import { Mesh, type Scene } from "@babylonjs/core";
 import React, { createContext, useContext, useState, type ReactNode } from "react";
 import { AnimationData, Object3D, SelectedProperty } from "../components/timeline/interfaces";
 
-export interface Geometry {
+export interface Container {
   id: number;
-  type: string;
   color?: string;
-  meshName: string;
-  parentId?: number;
-  children: number[];
+  name: string;
   isExpanded: boolean;
+  meshId?: string;
 }
 
 interface AppContextType {
   scene: Scene | null;
   setScene: (scene: Scene | null) => void;
-  geometries: Geometry[];
-  setGeometries: React.Dispatch<React.SetStateAction<Geometry[]>>;
+  containers: Container[];
+  setContainers: React.Dispatch<React.SetStateAction<Container[]>>;
+  meshes: Mesh[];
+  setMeshes: React.Dispatch<React.SetStateAction<Mesh[]>>;
   selectedGeometries: number[];
   setSelectedGeometries: React.Dispatch<React.SetStateAction<number[]>>;
   objects: Object3D[];
@@ -34,8 +34,10 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   // General App
   const [scene, setScene] = useState<Scene | null>(null);
-  const [geometries, setGeometries] = useState<Geometry[]>([]);
+  const [containers, setContainers] = useState<Container[]>([]);
   const [selectedGeometries, setSelectedGeometries] = useState<number[]>([]);
+  const [meshes, setMeshes] = useState<Mesh[]>([]);
+
 
   // Timeline
   const [objects, setObjects] = useState<Object3D[]>([]);
@@ -92,8 +94,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       value={{
         scene,
         setScene,
-        geometries,
-        setGeometries,
+        containers,
+        setContainers,
+        meshes,
+        setMeshes,
         selectedGeometries,
         setSelectedGeometries,
         objects,

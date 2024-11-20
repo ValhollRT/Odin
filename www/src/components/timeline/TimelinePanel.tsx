@@ -31,7 +31,7 @@ export default function AnimationTimelineEditor() {
   } | null>(null);
   const [dragStartFrame, setDragStartFrame] = useState<number | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
-  // const objectPanelRef = useRef<HTMLDivElement>(null);
+  const objectPanelRef = useRef<HTMLDivElement>(null);
   const [currentDirectoryId, setCurrentDirectoryId] = useState("default");
   const [showAll, setShowAll] = useState(false);
   const [collapsedObjects, setCollapsedObjects] = useState<Set<string>>(new Set());
@@ -906,6 +906,45 @@ export default function AnimationTimelineEditor() {
     setTotalFrames(frames);
   };
 
+  const scrollToSelectedKeyframe = (selectedKeyframe: SelectedKeyframe) => {
+    if (objectPanelRef.current && selectedKeyframe) {
+      console.log("XXX scrollToSelectedKeyframe", selectedKeyframe);
+      const { objectId, property } = selectedKeyframe;
+      const objectElement = objectPanelRef.current.querySelector(`[data-object-id="${objectId}"]`);
+      const propertyElement = objectPanelRef.current.querySelector(`[data-property-id="${objectId}-${property}"]`);
+
+      if (objectElement && propertyElement) {
+        console.log("XXX objectElement, propertyElement", objectElement, propertyElement);
+        const objectRect = objectElement.getBoundingClientRect();
+        const propertyRect = propertyElement.getBoundingClientRect();
+        const panelRect = objectPanelRef.current.getBoundingClientRect();
+
+        const objectTop = objectRect.top - panelRect.top + objectPanelRef.current.scrollTop;
+        const propertyBottom = propertyRect.bottom - panelRect.top + objectPanelRef.current.scrollTop;
+        console.log("XXX objectPanelRef, objectTop", objectPanelRef, objectTop)
+        if (objectTop < objectPanelRef.current.scrollTop || propertyBottom > objectPanelRef.current.scrollTop + panelRect.height) {
+          objectPanelRef.current.scrollTo({
+            top: objectTop - 16, // 16px de margen superior
+            behavior: 'smooth'
+          });
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (selectedKeyframes.length > 0) {
+      scrollToSelectedKeyframe(selectedKeyframes[0]);
+    }
+  }, [selectedKeyframes]);
+
+  const handleKeyframeSelect = (objectId: string, property: string, keyframeId: string) => {
+    const newSelectedKeyframe = { objectId, property, keyframeId };
+    setSelectedKeyframes([newSelectedKeyframe]);
+    scrollToSelectedKeyframe(newSelectedKeyframe);
+    console.log("XXX handleKeyframeSelect", newSelectedKeyframe);
+  };
+
   return (
     <div className="animation-timeline-editor">
       <TopMenu
@@ -921,6 +960,7 @@ export default function AnimationTimelineEditor() {
       />
       <div className="animation-timeline-content">
         <ObjectPanel
+          objectPanelRef={objectPanelRef}
           objects={objects}
           directories={directories}
           collapsedObjects={collapsedObjects}
@@ -1120,6 +1160,7 @@ export default function AnimationTimelineEditor() {
                                           transform: "translate(-50%, -50%)",
                                         }}
                                         onMouseDown={handleKeyframeMouseDown(obj.id, property, keyframe.id)}
+                                        onClick={() => handleKeyframeSelect(obj.id, property, keyframe.id)}
                                       />
                                     );
                                   })}

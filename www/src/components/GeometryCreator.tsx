@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext";
-import { createGeometry, geometryData, GeometryData } from "./GeometryFactory";
+import { createGeometry, geometryData, GeometryData } from "../engine/GeometryFactory";
 import { Button } from "./ui/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
@@ -15,23 +15,12 @@ const colors = [
 
 const GeometryCreator = () => {
   const [activeTab, setActiveTab] = useState("geometries");
-  const { scene, setGeometries } = useAppContext();
+  const { scene, setContainers, containers } = useAppContext();
 
-  const handleGeometryCreate = (type: GeometryData) => {
-    if (!scene) return;
 
-    const mesh = createGeometry(scene, type);
-    setGeometries((prev) => [
-      ...prev,
-      {
-        id: Number(mesh!.id),
-        type: type.name.toLowerCase(),
-        meshName: mesh!.name,
-        children: [],
-        isExpanded: true,
-      },
-    ]);
-  };
+  useEffect(() => {
+    console.log(containers)
+  },[containers]);
 
   const handleDragStart = (e: React.DragEvent, type: string) => {
     e.dataTransfer.setData("geometryType", type);
@@ -42,33 +31,28 @@ const GeometryCreator = () => {
   };
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="geometries">Geometrías</TabsTrigger>
-        <TabsTrigger value="materials">Materiales</TabsTrigger>
+    <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <TabsList className="tab-list">
+        <TabsTrigger value="geometries">Geometries</TabsTrigger>
+        <TabsTrigger value="materials">Materials</TabsTrigger>
+        <TabsTrigger value="images">Images</TabsTrigger>
       </TabsList>
-      <TabsContent value="geometries" className="space-y-4">
-        <h3 className="text-lg font-semibold mb-2">Crear Geometrías</h3>
-        <div className="grid grid-cols-2 gap-2">
+      <TabsContent value="geometries">
+        <div>
           {geometryData.map((type) => (
             <Button
               key={type.name}
               draggable
               onDragStart={(e) => {
                 handleDragStart(e, type.name.toLowerCase());
-              }}
-              onClick={() => {
-                handleGeometryCreate(type);
-              }}
-            >
+              }}>
               {type.name}
             </Button>
           ))}
         </div>
       </TabsContent>
-      <TabsContent value="materials" className="space-y-4">
-        <h3 className="text-lg font-semibold mb-2">Paleta de Colores</h3>
-        <div className="grid grid-cols-3 gap-2">
+      <TabsContent value="materials">
+        <div>
           {colors.map((color) => (
             <Button
               key={color.hex}

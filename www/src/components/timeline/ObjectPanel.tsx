@@ -4,6 +4,7 @@ import { ContextMenu, ContextMenuItem } from "../ui/ContextMenu";
 import { Object3D, Directory } from "./interfaces";
 import { TRACK_HEIGHT } from "./utils";
 import { useAppContext } from "../../context/AppContext";
+import { SceneObject } from "../sceneTree/initialMockObjects";
 
 export const ObjectItem: React.FC<{
   object: Object3D;
@@ -22,6 +23,7 @@ export const ObjectItem: React.FC<{
       <ContextMenu>
         <div
           key={object.id}
+          data-object-id={object.id}
           className="object-item"
           draggable
           onDragStart={handleDragStart(object.id)}
@@ -30,23 +32,20 @@ export const ObjectItem: React.FC<{
           onContextMenu={(e) => e.preventDefault()} // Desactiva el menú contextual nativo
           style={{ height: `${TRACK_HEIGHT}px` }}
         >
-          <span onClick={ e => {
-            e.stopPropagation();
-            onToggleCollapse(object.id);
-            setCollapsed(!collapsed)
-          }
-            } className="object-toggle">
+          <span
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleCollapse(object.id);
+              setCollapsed(!collapsed);
+            }}
+            className="object-toggle"
+          >
             {collapsed ? <ChevronRight /> : <ChevronDown />}
           </span>
           <span>{object.name}</span>
         </div>
         {propertiesMock.map((property) => (
-          <ContextMenuItem
-            key={`${property}-${object.id}`}
-            onClick={() => addProperty({ objectId: object.id, property })}
-          >
-            {property}
-          </ContextMenuItem>
+          <ContextMenuItem onClick={() => addProperty({ objectId: object.id, property })}>{property}</ContextMenuItem>
         ))}
       </ContextMenu>
       {!collapsed && (
@@ -77,6 +76,8 @@ export const ObjectProperties: React.FC<{
             onClick={() => setSelectedProperty({ objectId, property: key })}
             draggable
             onDragStart={onDragStart(objectId, key)}
+            key={`${objectId}-${key}`}
+            data-property-id={`${objectId}-${key}`}
           >
             {key}
           </div>
@@ -96,13 +97,22 @@ export const ObjectProperties: React.FC<{
 };
 
 export const ObjectPanel: React.FC<{
+  objectPanelRef: React.RefObject<HTMLDivElement>;
   objects: Object3D[];
   directories: Directory[];
   collapsedObjects: Set<string>;
   onToggleCollapse: (objectId: string) => void;
   onDragProperty: (sourceObjectId: string, targetObjectId: string, property: string, keepSource: boolean) => void;
   onMoveObjectToDirectory: (objectId: string, directoryId: string) => void;
-}> = ({ objects, directories, collapsedObjects, onToggleCollapse, onDragProperty, onMoveObjectToDirectory }) => {
+}> = ({
+  objectPanelRef,
+  objects,
+  directories,
+  collapsedObjects,
+  onToggleCollapse,
+  onDragProperty,
+  onMoveObjectToDirectory,
+}) => {
   const [draggedProperty, setDraggedProperty] = useState<{
     objectId: string;
     property: string;
@@ -132,7 +142,7 @@ export const ObjectPanel: React.FC<{
 
   return (
     <div className="object-panel">
-      <div className="object-panel-content">
+      <div ref={objectPanelRef} className="object-panel-content">
         {directories.map((directory) => (
           <>
             <div

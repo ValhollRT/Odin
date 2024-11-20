@@ -110,6 +110,7 @@ const createGeometry = (scene: Scene, type: GeometryData): Mesh | null => {
   // Crear geometrías estándar usando MeshBuilder
   const mesh = MeshBuilder[type.method](meshName, type.options, scene);
 
+  console.log(mesh)
   if (mesh) {
     mesh.position.x = (Math.random() - 0.5) * 20;
     mesh.position.z = (Math.random() - 0.5) * 20;
