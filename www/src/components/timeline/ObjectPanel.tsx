@@ -4,7 +4,6 @@ import { ContextMenu, ContextMenuItem } from "../ui/ContextMenu";
 import { Object3D, Directory } from "./interfaces";
 import { TRACK_HEIGHT } from "./utils";
 import { useAppContext } from "../../context/AppContext";
-import { SceneObject } from "../sceneTree/initialMockObjects";
 
 export const ObjectItem: React.FC<{
   object: Object3D;

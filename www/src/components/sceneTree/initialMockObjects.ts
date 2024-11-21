@@ -1,15 +1,8 @@
+import { Container } from "../../context/AppContext";
+
 export type IconType = 'group' | 'geometry' | 'text' | 'image' | 'video' | 'audio';
 
-export type SceneObject = {
-  id: string;
-  name: string;
-  icons: IconType[];
-  children: SceneObject[];
-  visible: boolean;
-  locked: boolean;
-};
-
-export const initialMockObjects: SceneObject[] = [
+export const initialMockObjects: Container[] = [
   { 
     id: '1', 
     name: 'Scene Root', 

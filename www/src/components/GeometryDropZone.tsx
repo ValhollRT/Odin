@@ -1,12 +1,11 @@
-import { Color3, HighlightLayer, Mesh, StandardMaterial } from "@babylonjs/core";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { Color3, HighlightLayer, StandardMaterial } from "@babylonjs/core";
 import { useEffect, useState } from "react";
 import { Container, useAppContext } from "../context/AppContext";
 import { createGeometry, geometryData } from "../engine/GeometryFactory";
-import SceneTree from "./sceneTree/sceneTree";
+import { SceneTree } from "./sceneTree/sceneTree";
 
 const GeometryDropZone = () => {
-  const { scene, containers, setContainers, selectedGeometries, setSelectedGeometries, meshes, setMeshes } = useAppContext();
+  const { scene, setContainers, setMeshes } = useAppContext();
   const [highlightLayer, setHighlightLayer] = useState<HighlightLayer | null>(null);
 
   useEffect(() => {
@@ -20,7 +19,7 @@ const GeometryDropZone = () => {
     }
   }, [scene]);
 
-  const handleDrop = (e: React.DragEvent, targetGeometryId?: number) => {
+  const handleDrop = (e: React.DragEvent, targetGeometryId?: string) => {
     e.preventDefault();
     const geometryType = e.dataTransfer.getData("geometryType");
     const color = e.dataTransfer.getData("color");
@@ -35,32 +34,34 @@ const GeometryDropZone = () => {
         mesh && setMeshes(prev => [...prev, mesh]);
     
         if (mesh) {
-          const newGeometry: Container = {
-            id: Number(mesh.id),
+          const newContainer: Container = {
+            id: mesh.id,
             name: mesh.name,
-            isExpanded: true,
+            isExpanded: false,
             meshId: mesh.id,
+            icons: [],
+            visible: true,
+            locked: true,
+            children: []
           };
-          setContainers((prev) => [...prev, newGeometry]);
+
+          console.log(newContainer);
+
+          setContainers((prev) => [...prev, newContainer]);
         }
       }
     } else if (color && targetGeometryId !== undefined) {
       applyColor(targetGeometryId, color);
     } else if (draggedGeometryId && targetGeometryId !== undefined) {
-      reorganizeGeometries(parseInt(draggedGeometryId), targetGeometryId);
+      reorganizeGeometries(draggedGeometryId, targetGeometryId);
     }
-  };
-  
-  const handleDragStart = (e: React.DragEvent, geometryId: number) => {
-    // e.dataTransfer.setData("geometryId", geometryId.toString());
-    console.log("handleDragStart", e.dataTransfer, geometryId);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
 
-  const applyColor = (geometryId: number, color: string) => {
+  const applyColor = (geometryId: string, color: string) => {
     if (!scene) return;
 
     setContainers((prev) =>
@@ -79,40 +80,13 @@ const GeometryDropZone = () => {
     );
   };
 
-  const handleGeometryClick = (geometryId: number, event: React.MouseEvent) => {
-    if (!scene || !highlightLayer) return;
 
-    if (event.ctrlKey || event.metaKey) {
-      // Multi-selección
-      setSelectedGeometries((prev) =>
-        prev.includes(geometryId) ? prev.filter((id) => id !== geometryId) : [...prev, geometryId]
-      );
-    } else {
-      // Selección única
-      setSelectedGeometries([geometryId]);
-    }
-
-    updateHighlight();
-  };
-
-  const updateHighlight = () => {
-    if (!scene || !highlightLayer) return;
-
-    highlightLayer.removeAllMeshes();
-    selectedGeometries.forEach((id) => {
-      const mesh = scene.getMeshByName(containers.find((g) => g.id === id)?.name || "");
-      if (mesh) {
-        highlightLayer.addMesh(mesh as any, Color3.Yellow());
-      }
-    });
-  };
-
-  const reorganizeGeometries = (draggedId: number, targetId: number) => {
+  const reorganizeGeometries = (draggedId: string, targetId: string) => {
     console.log(draggedId, targetId);
   };
 
   return (
-    <div onDrop={(e) => handleDrop(e)} onDragOver={handleDragOver} className="component geometry-dropzone">
+    <div onDrop={(e) => handleDrop(e)} onDragOver={handleDragOver} className="component">
       <SceneTree/>
     </div>
   );

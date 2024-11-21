@@ -1,6 +1,7 @@
-import { IconType, SceneObject } from "./initialMockObjects";
+import { Container } from "../../context/AppContext";
+import { IconType } from "./initialMockObjects";
 
-export const findObjectById = (items: SceneObject[], id: string): SceneObject | null => {
+export const findObjectById = (items: Container[], id: string): Container | null => {
     for (const item of items) {
       if (item.id === id) return item;
       if (item.children.length > 0) {
@@ -11,7 +12,7 @@ export const findObjectById = (items: SceneObject[], id: string): SceneObject | 
     return null;
   };
   
-  export const updateObjectIcons = (items: SceneObject[], id: string, newIcons: IconType[]): SceneObject[] => {
+  export const updateObjectIcons = (items: Container[], id: string, newIcons: IconType[]): Container[] => {
     return items.map(item => {
       if (item.id === id) {
         return { ...item, icons: newIcons };
@@ -23,7 +24,7 @@ export const findObjectById = (items: SceneObject[], id: string): SceneObject | 
     });
   };
   
-  export const updateObjectProperty = (items: SceneObject[], id: string, property: keyof SceneObject, value: any): SceneObject[] => {
+  export const updateObjectProperty = (items: Container[], id: string, property: keyof Container, value: any): Container[] => {
     return items.map(item => {
       if (item.id === id) {
         return { ...item, [property]: value };
@@ -36,7 +37,7 @@ export const findObjectById = (items: SceneObject[], id: string): SceneObject | 
   };
   
   
-  export const findAndRemoveItemById = (items: SceneObject[], id: string): [SceneObject | null, SceneObject[]] => {
+  export const findAndRemoveItemById = (items: Container[], id: string): [Container | null, Container[]] => {
     for (let i = 0; i < items.length; i++) {
       if (items[i].id === id) {
         const [removedItem] = items.splice(i, 1);
@@ -53,7 +54,7 @@ export const findObjectById = (items: SceneObject[], id: string): SceneObject | 
     return [null, items];
   };
   
-  export const insertItem = (items: SceneObject[], item: SceneObject, targetId: string, position: 'before' | 'inside' | 'after'): SceneObject[] => {
+  export const insertItem = (items: Container[], item: Container, targetId: string, position: 'before' | 'inside' | 'after'): Container[] => {
     for (let i = 0; i < items.length; i++) {
       if (items[i].id === targetId) {
         if (position === 'before') {

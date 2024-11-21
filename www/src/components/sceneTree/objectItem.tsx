@@ -13,10 +13,11 @@ import {
   Video,
   Music,
 } from "lucide-react";
-import { IconType, SceneObject, styles } from "./initialMockObjects";
+import { IconType, styles } from "./initialMockObjects";
+import { Container } from "../../context/AppContext";
 
 export const ObjectItem: React.FC<{
-  object: SceneObject;
+  object: Container;
   level: number;
   expandedItems: Set<string>;
   toggleExpand: (id: string) => void;

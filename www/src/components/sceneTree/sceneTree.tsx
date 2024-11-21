@@ -1,12 +1,14 @@
 import React, { useState, useCallback } from "react";
-import { IconType, initialMockObjects } from "./initialMockObjects";
+import { IconType } from "./initialMockObjects";
 import { findAndRemoveItemById, findObjectById, insertItem, updateObjectIcons, updateObjectProperty } from "./utils";
 import { ObjectItem } from "./objectItem";
 import './scene-tree-styles.css';
+import { Container, useAppContext } from "../../context/AppContext";
 
 
-export default function SceneTree() {
-  const [sceneObjects, setSceneObjects] = useState(initialMockObjects);
+export const SceneTree = () => {
+  const {containers, setContainers } = useAppContext();
+
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(["1"]));
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
@@ -14,6 +16,7 @@ export default function SceneTree() {
   const [selectedIcon, setSelectedIcon] = useState<{ id: string; type: IconType } | null>(null);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
+  console.log("RENDER! SCENE TREE", containers)
   const toggleExpand = useCallback((id: string) => {
     setExpandedItems((prev) => {
       const newSet = new Set(prev);
@@ -32,7 +35,7 @@ export default function SceneTree() {
 
   const handleDrop = useCallback(
     (targetId: string, iconType?: IconType) => {
-      setSceneObjects((prev) => {
+      setContainers((prev) => {
         if (iconType) {
           const targetObject = findObjectById(prev, targetId);
           if (targetObject) {
@@ -60,11 +63,11 @@ export default function SceneTree() {
   );
 
   const toggleVisibility = useCallback((id: string) => {
-    setSceneObjects((prev) => updateObjectProperty(prev, id, "visible", (value: boolean) => !value));
+    setContainers((prev) => updateObjectProperty(prev, id, "visible", (value: boolean) => !value));
   }, []);
 
   const toggleLock = useCallback((id: string) => {
-    setSceneObjects((prev) => updateObjectProperty(prev, id, "locked", (value: boolean) => !value));
+    setContainers((prev) => updateObjectProperty(prev, id, "locked", (value: boolean) => !value));
   }, []);
 
   const handleIconClick = useCallback((id: string, iconType: IconType) => {
@@ -72,10 +75,10 @@ export default function SceneTree() {
   }, []);
 
   const removeIcon = useCallback((id: string, iconType: IconType) => {
-    setSceneObjects((prev) => {
+    setContainers((prev) => {
       const targetObject = findObjectById(prev, id);
       if (targetObject) {
-        const newIcons = targetObject.icons.filter((icon) => icon !== iconType);
+        const newIcons = targetObject.icons.filter((icon: string) => icon !== iconType);
         return updateObjectIcons(prev, id, newIcons);
       }
       return prev;
@@ -84,7 +87,7 @@ export default function SceneTree() {
   }, []);
 
   const renameObject = useCallback((id: string, newName: string) => {
-    setSceneObjects((prev) => updateObjectProperty(prev, id, "name", newName));
+    setContainers((prev) => updateObjectProperty(prev, id, "name", newName));
   }, []);
 
   return (
@@ -93,7 +96,7 @@ export default function SceneTree() {
         <input className="header-input" placeholder="Search..." />
       </div>
       <div className="scene-tree-content">
-        {sceneObjects.map((object) => (
+        {containers.map((object) => (
           <ObjectItem
             key={object.id}
             object={object}
