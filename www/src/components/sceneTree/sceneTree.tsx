@@ -1,13 +1,11 @@
 import React, { useState, useCallback } from "react";
-import { IconType } from "./initialMockObjects";
 import { findAndRemoveItemById, findObjectById, insertItem, updateObjectIcons, updateObjectProperty } from "./utils";
 import { ObjectItem } from "./objectItem";
-import './scene-tree-styles.css';
-import { Container, useAppContext } from "../../context/AppContext";
-
+import "./scene-tree-styles.css";
+import { IconType, useAppContext } from "../../context/AppContext";
 
 export const SceneTree = () => {
-  const {containers, setContainers } = useAppContext();
+  const { containers, setContainers } = useAppContext();
 
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(["1"]));
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -16,7 +14,7 @@ export const SceneTree = () => {
   const [selectedIcon, setSelectedIcon] = useState<{ id: string; type: IconType } | null>(null);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
-  console.log("RENDER! SCENE TREE", containers)
+  console.log("RENDER! SCENE TREE", containers);
   const toggleExpand = useCallback((id: string) => {
     setExpandedItems((prev) => {
       const newSet = new Set(prev);
@@ -59,7 +57,7 @@ export const SceneTree = () => {
       setOverId(null);
       setOverPosition(null);
     },
-    [draggingId, overPosition]
+    [draggingId, overPosition, setContainers]
   );
 
   const toggleVisibility = useCallback((id: string) => {
@@ -123,4 +121,4 @@ export const SceneTree = () => {
       </div>
     </div>
   );
-}
+};

@@ -5,12 +5,7 @@ import { KeyframeEditor } from "./KeyframeEditor";
 import { ObjectPanel } from "./ObjectPanel";
 import { PlaybackControls } from "./PlaybackControls";
 import { TopMenu } from "./TopMenu";
-import {
-  INITIAL_GRID_SPACING,
-  TRACK_HEIGHT,
-  calculateObjectPosition,
-  interpolateValue,
-} from "./utils";
+import { INITIAL_GRID_SPACING, TRACK_HEIGHT, calculateObjectPosition, interpolateValue } from "./utils";
 
 export default function AnimationTimelineEditor() {
   const { objects, setObjects, animationData, setAnimationData, selectedProperty } = useAppContext();
@@ -921,11 +916,14 @@ export default function AnimationTimelineEditor() {
 
         const objectTop = objectRect.top - panelRect.top + objectPanelRef.current.scrollTop;
         const propertyBottom = propertyRect.bottom - panelRect.top + objectPanelRef.current.scrollTop;
-        console.log("XXX objectPanelRef, objectTop", objectPanelRef, objectTop)
-        if (objectTop < objectPanelRef.current.scrollTop || propertyBottom > objectPanelRef.current.scrollTop + panelRect.height) {
+        console.log("XXX objectPanelRef, objectTop", objectPanelRef, objectTop);
+        if (
+          objectTop < objectPanelRef.current.scrollTop ||
+          propertyBottom > objectPanelRef.current.scrollTop + panelRect.height
+        ) {
           objectPanelRef.current.scrollTo({
             top: objectTop - 16, // 16px de margen superior
-            behavior: 'smooth'
+            behavior: "smooth",
           });
         }
       }

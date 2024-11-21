@@ -13,8 +13,7 @@ import {
   Video,
   Music,
 } from "lucide-react";
-import { IconType, styles } from "./initialMockObjects";
-import { Container } from "../../context/AppContext";
+import { Container, IconType } from "../../context/AppContext";
 
 export const ObjectItem: React.FC<{
   object: Container;
@@ -160,14 +159,16 @@ export const ObjectItem: React.FC<{
         onDrop={handleDrop}
       >
         <div
-          style={{
-            ...styles.sceneTreeItemContent,
-            ...(selectedItems.includes(object.id)
-              ? {
-                  backgroundColor: selectedItems[selectedItems.length - 1] === object.id ? "#bfdbfe" : "#e5e7eb",
-                }
-              : {}),
-          }}
+          className={`
+    ${"scene-tree-item-content"}
+    ${
+      selectedItems.includes(object.id)
+        ? selectedItems[selectedItems.length - 1] === object.id
+          ? "selected-icon"
+          : "scene-tree-item-over"
+        : ""
+    }
+  `}
           draggable
           onDragStart={(e) => onDragStart(e, object.id)}
           onClick={handleContainerClick}
@@ -201,12 +202,13 @@ export const ObjectItem: React.FC<{
           {object.icons.map((iconType, index) => (
             <div
               key={index}
-              style={{
-                ...styles.objectIcon,
-                ...(selectedIcon && selectedIcon.id === object.id && selectedIcon.type === iconType
-                  ? styles.selectedIcon
-                  : {}),
-              }}
+              className={`
+                ${"object-icon"} 
+                ${selectedIcon && selectedIcon.id === object.id && selectedIcon.type === iconType 
+                  ? "selected-icon" 
+                  : ""
+                }
+              `}
               draggable
               onDragStart={(e) => onDragStart(e, object.id, iconType)}
               onClick={() => onIconClick(object.id, iconType)}

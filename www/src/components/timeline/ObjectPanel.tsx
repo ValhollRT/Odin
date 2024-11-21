@@ -1,9 +1,9 @@
-import { ChevronRight, ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import React, { useState } from "react";
-import { ContextMenu, ContextMenuItem } from "../ui/ContextMenu";
-import { Object3D, Directory } from "./interfaces";
-import { TRACK_HEIGHT } from "./utils";
 import { useAppContext } from "../../context/AppContext";
+import { ContextMenu, ContextMenuItem } from "../ui/ContextMenu";
+import { Directory, Object3D } from "./interfaces";
+import { TRACK_HEIGHT } from "./utils";
 
 export const ObjectItem: React.FC<{
   object: Object3D;

@@ -22,7 +22,7 @@
   }
   
   .scene-tree-content {
-    height: 600px;
+    height: 100%;
     overflow-y: auto;
     padding: 0.5rem;
   }

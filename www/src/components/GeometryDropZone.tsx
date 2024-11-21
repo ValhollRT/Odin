@@ -30,9 +30,9 @@ const GeometryDropZone = () => {
 
       if (typeData && scene) {
         const mesh = createGeometry(scene, typeData);
-        
-        mesh && setMeshes(prev => [...prev, mesh]);
-    
+
+        mesh && setMeshes((prev) => [...prev, mesh]);
+
         if (mesh) {
           const newContainer: Container = {
             id: mesh.id,
@@ -42,7 +42,7 @@ const GeometryDropZone = () => {
             icons: [],
             visible: true,
             locked: true,
-            children: []
+            children: [],
           };
 
           console.log(newContainer);
@@ -80,14 +80,13 @@ const GeometryDropZone = () => {
     );
   };
 
-
   const reorganizeGeometries = (draggedId: string, targetId: string) => {
     console.log(draggedId, targetId);
   };
 
   return (
     <div onDrop={(e) => handleDrop(e)} onDragOver={handleDragOver} className="component">
-      <SceneTree/>
+      <SceneTree />
     </div>
   );
 };

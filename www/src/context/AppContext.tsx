@@ -1,7 +1,8 @@
 import { Mesh, type Scene } from "@babylonjs/core";
 import React, { createContext, useContext, useState, type ReactNode } from "react";
 import { AnimationData, Object3D, SelectedProperty } from "../components/timeline/interfaces";
-import { IconType } from "../components/sceneTree/initialMockObjects";
+
+export type IconType = "group" | "geometry" | "text" | "image" | "video" | "audio";
 
 export interface Container {
   id: string;
@@ -41,7 +42,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [containers, setContainers] = useState<Container[]>([]);
   const [selectedGeometries, setSelectedGeometries] = useState<string[]>([]);
   const [meshes, setMeshes] = useState<Mesh[]>([]);
-
 
   // Timeline
   const [objects, setObjects] = useState<Object3D[]>([]);
