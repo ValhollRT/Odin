@@ -3,6 +3,7 @@ import { useAppContext } from "../context/AppContext";
 import { createGeometry, geometryData, GeometryData } from "../engine/GeometryFactory";
 import { Button } from "./ui/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import FileExplorer from "./fileExplorer/FileExplorer";
 
 const colors = [
   { name: "Rojo", hex: "#FF0000" },
@@ -17,10 +18,9 @@ const GeometryCreator = () => {
   const [activeTab, setActiveTab] = useState("geometries");
   const { scene, setContainers, containers } = useAppContext();
 
-
   useEffect(() => {
-    console.log(containers)
-  },[containers]);
+    console.log(containers);
+  }, [containers]);
 
   const handleDragStart = (e: React.DragEvent, type: string) => {
     e.dataTransfer.setData("geometryType", type);
@@ -33,10 +33,14 @@ const GeometryCreator = () => {
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
       <TabsList className="tab-list">
+        <TabsTrigger value="explorer">Geometries</TabsTrigger>
         <TabsTrigger value="geometries">Geometries</TabsTrigger>
         <TabsTrigger value="materials">Materials</TabsTrigger>
         <TabsTrigger value="images">Images</TabsTrigger>
       </TabsList>
+      <TabsContent value="explorer">
+        <FileExplorer />
+      </TabsContent>
       <TabsContent value="geometries">
         <div>
           {geometryData.map((type) => (
@@ -45,7 +49,8 @@ const GeometryCreator = () => {
               draggable
               onDragStart={(e) => {
                 handleDragStart(e, type.name.toLowerCase());
-              }}>
+              }}
+            >
               {type.name}
             </Button>
           ))}
