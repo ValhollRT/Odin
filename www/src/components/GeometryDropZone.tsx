@@ -44,16 +44,11 @@ const GeometryDropZone = () => {
             locked: true,
             children: [],
           };
-
-          console.log(newContainer);
-
           setContainers((prev) => [...prev, newContainer]);
         }
       }
     } else if (color && targetGeometryId !== undefined) {
       applyColor(targetGeometryId, color);
-    } else if (draggedGeometryId && targetGeometryId !== undefined) {
-      reorganizeGeometries(draggedGeometryId, targetGeometryId);
     }
   };
 
@@ -78,10 +73,6 @@ const GeometryDropZone = () => {
         return g;
       })
     );
-  };
-
-  const reorganizeGeometries = (draggedId: string, targetId: string) => {
-    console.log(draggedId, targetId);
   };
 
   return (

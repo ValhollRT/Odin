@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from "react";
 import { findAndRemoveItemById, findObjectById, insertItem, updateObjectIcons, updateObjectProperty } from "./utils";
 import { ObjectItem } from "./objectItem";
-import "./scene-tree-styles.css";
 import { IconType, useAppContext } from "../../context/AppContext";
+import "./scene-tree-styles.css";
 
 export const SceneTree = () => {
   const { containers, setContainers } = useAppContext();
@@ -12,9 +12,7 @@ export const SceneTree = () => {
   const [overId, setOverId] = useState<string | null>(null);
   const [overPosition, setOverPosition] = useState<"before" | "inside" | "after" | null>(null);
   const [selectedIcon, setSelectedIcon] = useState<{ id: string; type: IconType } | null>(null);
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
-  console.log("RENDER! SCENE TREE", containers);
   const toggleExpand = useCallback((id: string) => {
     setExpandedItems((prev) => {
       const newSet = new Set(prev);
@@ -113,8 +111,6 @@ export const SceneTree = () => {
             onIconClick={handleIconClick}
             selectedIcon={selectedIcon}
             removeIcon={removeIcon}
-            selectedItems={selectedItems}
-            setSelectedItems={setSelectedItems}
             renameObject={renameObject}
           />
         ))}

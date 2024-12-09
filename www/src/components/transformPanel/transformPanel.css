@@ -1,0 +1,120 @@
+.transform-panel {
+    width: 500px;
+    padding: 1rem;
+  }
+
+  .coordinate-system {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .button-group {
+    display: flex;
+    border-radius: 0.375rem;
+    overflow: hidden;
+  }
+
+  .button {
+    flex: 1;
+    border-radius: 0;
+  }
+
+  .section {
+    margin-bottom: 1rem;
+  }
+
+  .input-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .input-wrapper {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .input-label {
+    font-size: 0.75rem;
+  }
+
+  .scrub-input {
+    background-color: #f3f4f6;
+    color: #1f2937;
+    cursor: ew-resize;
+  }
+
+  .full-width-button {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .rotation-order {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+  }
+
+  .rotation-button {
+    font-size: 0.75rem;
+  }
+
+  .axis-center {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .axis-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .small-button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .collapsible-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+  }
+
+  .chevron-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .collapsible-content {
+    padding-top: 1rem;
+  }
+
+  .bounding-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .button-group-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .container-info {
+    font-size: 0.875rem;
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+  }

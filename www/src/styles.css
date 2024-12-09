@@ -393,7 +393,7 @@ code {
     color: var(--muted-foreground);
     border-color: var(--muted);
   }
-}`
+}
 
 .label {
   display: block;

@@ -13,7 +13,7 @@ import {
   Video,
   Music,
 } from "lucide-react";
-import { Container, IconType } from "../../context/AppContext";
+import { Container, IconType, useAppContext } from "../../context/AppContext";
 
 export const ObjectItem: React.FC<{
   object: Container;
@@ -32,8 +32,6 @@ export const ObjectItem: React.FC<{
   onIconClick: (id: string, iconType: IconType) => void;
   selectedIcon: { id: string; type: IconType } | null;
   removeIcon: (id: string, iconType: IconType) => void;
-  selectedItems: string[];
-  setSelectedItems: React.Dispatch<React.SetStateAction<string[]>>;
   renameObject: (id: string, newName: string) => void;
 }> = ({
   object,
@@ -52,10 +50,10 @@ export const ObjectItem: React.FC<{
   onIconClick,
   selectedIcon,
   removeIcon,
-  selectedItems,
-  setSelectedItems,
   renameObject,
 }) => {
+  const { selectedContainers, setSelectedContainers } = useAppContext();
+
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(object.name);
   const isExpanded = expandedItems.has(object.id);
@@ -83,13 +81,14 @@ export const ObjectItem: React.FC<{
   const handleContainerClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (e.shiftKey) {
-      setSelectedItems((prev) => {
+      setSelectedContainers((prev) => {
         const newSelection = prev.includes(object.id) ? prev.filter((id) => id !== object.id) : [...prev, object.id];
         return newSelection;
       });
     } else {
-      setSelectedItems([object.id]);
+      setSelectedContainers([object.id]);
     }
+    console.log(object.id)
   };
 
   const handleDoubleClick = (e: React.MouseEvent) => {
@@ -162,8 +161,8 @@ export const ObjectItem: React.FC<{
           className={`
     ${"scene-tree-item-content"}
     ${
-      selectedItems.includes(object.id)
-        ? selectedItems[selectedItems.length - 1] === object.id
+      selectedContainers.includes(object.id)
+        ? selectedContainers[selectedContainers.length - 1] === object.id
           ? "selected-icon"
           : "scene-tree-item-over"
         : ""
@@ -251,8 +250,6 @@ export const ObjectItem: React.FC<{
               onIconClick={onIconClick}
               selectedIcon={selectedIcon}
               removeIcon={removeIcon}
-              selectedItems={selectedItems}
-              setSelectedItems={setSelectedItems}
               renameObject={renameObject}
             />
           ))}

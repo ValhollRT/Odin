@@ -22,10 +22,10 @@ interface AppContextType {
   setContainers: React.Dispatch<React.SetStateAction<Container[]>>;
   meshes: Mesh[];
   setMeshes: React.Dispatch<React.SetStateAction<Mesh[]>>;
-  selectedGeometries: string[];
-  setSelectedGeometries: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedContainers: string[];
+  setSelectedContainers: React.Dispatch<React.SetStateAction<string[]>>;
   objects: Object3D[];
-  setObjects: React.Dispatch<React.SetStateAction<Object3D[]>>;
+  setObjects: React.Dispatch<React.SetStateAction<Object3D[]>>; // Replace used in timeline
   animationData: AnimationData;
   setAnimationData: React.Dispatch<React.SetStateAction<AnimationData>>;
   selectedProperty: SelectedProperty | null;
@@ -40,7 +40,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   // General App
   const [scene, setScene] = useState<Scene | null>(null);
   const [containers, setContainers] = useState<Container[]>([]);
-  const [selectedGeometries, setSelectedGeometries] = useState<string[]>([]);
+  const [selectedContainers, setSelectedContainers] = useState<string[]>([]);
   const [meshes, setMeshes] = useState<Mesh[]>([]);
 
   // Timeline
@@ -102,8 +102,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setContainers,
         meshes,
         setMeshes,
-        selectedGeometries,
-        setSelectedGeometries,
+        selectedContainers,
+        setSelectedContainers,
         objects,
         setObjects,
         addProperty,
