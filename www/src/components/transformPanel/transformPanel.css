@@ -16,11 +16,6 @@
     overflow: hidden;
   }
 
-  .button {
-    flex: 1;
-    border-radius: 0;
-  }
-
   .section {
     margin-bottom: 1rem;
   }

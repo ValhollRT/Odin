@@ -4,6 +4,7 @@ import { createGeometry, geometryData, GeometryData } from "../engine/GeometryFa
 import { Button } from "./ui/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import FileExplorer from "./fileExplorer/FileExplorer";
+import { PaintBucket } from "lucide-react";
 
 const colors = [
   { name: "Rojo", hex: "#FF0000" },
@@ -16,7 +17,7 @@ const colors = [
 
 const GeometryCreator = () => {
   const [activeTab, setActiveTab] = useState("geometries");
-  const { scene, setContainers, containers } = useAppContext();
+  const { containers } = useAppContext();
 
   useEffect(() => {
     console.log(containers);
@@ -42,11 +43,21 @@ const GeometryCreator = () => {
         <FileExplorer />
       </TabsContent>
       <TabsContent value="geometries">
-        <div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(5, 1fr)`,
+            gap: "gap",
+          }}
+        >
           {geometryData.map((type) => (
             <Button
               key={type.name}
+              icon={type.icon}
+              iconPosition="top"
               draggable
+              color="primary"
+              size="square"
               onDragStart={(e) => {
                 handleDragStart(e, type.name.toLowerCase());
               }}
@@ -57,10 +68,19 @@ const GeometryCreator = () => {
         </div>
       </TabsContent>
       <TabsContent value="materials">
-        <div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(5, 1fr)`,
+            gap: "gap",
+          }}
+        >
           {colors.map((color) => (
             <Button
+              icon={<PaintBucket />}
               key={color.hex}
+              size="square"
+              iconPosition="top"
               draggable
               onDragStart={(e) => {
                 handleColorDragStart(e, color.hex);

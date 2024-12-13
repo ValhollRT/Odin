@@ -1,26 +1,68 @@
-import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | "square";
-  size?: "default" | "sm" | "lg" | "icon";
+  variant?: "primary" |"destructive" | "outline" | "secondary" | "ghost" | "link";
+  size?: "sm" | "md" | "lg" | "square" | "icon";
   icon?: React.ReactNode;
+  iconPosition?: "left" | "right" | "top"; // Nueva prop para controlar posición del ícono
+  children?: React.ReactNode;
 }
 
-// Button.tsx
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "default", size = "default", asChild = false, icon, children, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
+  (
+    { 
+      className, 
+      variant = "primary", 
+      size = "md", 
+      asChild = false, 
+      icon, 
+      iconPosition = "left", // Valor por defecto
+      children, 
+      ...props 
+    }, 
+    ref
+  ) => {
+    const iconMarkup = icon && (
+      <span
+        className={`icon ${iconPosition === "top" ? "icon-top" : "icon-side"}`}
+        style={{
+          marginRight: iconPosition === "left" ? "0.5rem" : undefined,
+          marginLeft: iconPosition === "right" ? "0.5rem" : undefined,
+          marginBottom: iconPosition === "top" ? "0.5rem" : undefined,
+        }}
+      >
+        {icon}
+      </span>
+    );
 
-    const baseStyles = "button";
-    const iconStyles = size === "icon" ? "w-8 h-8" : "";
+    if (asChild && React.isValidElement(children)) {
+      return React.cloneElement(children as React.ReactElement<any>, {
+        className: [
+          "button",
+          variant,
+          size,
+          iconPosition === "top" && "vertical-layout", // Clase especial para disposición vertical
+          children.props.className || "",
+        ]
+          .filter(Boolean)
+          .join(" "),
+        ...props,
+      });
+    }
 
     return (
-      <Comp className={`${baseStyles} ${variant} ${size} ${iconStyles} ${className || ""}`} ref={ref} {...props}>
-        {icon && <span className="mr-2">{icon}</span>} {/* Renderizar el icono si se proporciona */}
+      <button
+        className={["button", variant, size, iconPosition === "top" && "vertical-layout", className || ""]
+          .filter(Boolean)
+          .join(" ")}
+        ref={ref}
+        {...props}
+      >
+        {iconPosition === "left" || iconPosition === "top" ? iconMarkup : null}
         {children}
-      </Comp>
+        {iconPosition === "right" ? iconMarkup : null}
+      </button>
     );
   }
 );

@@ -137,21 +137,21 @@ export default function Component() {
         <div className="coordinate-system">
           <div className="button-group">
             <Button
-              variant={coordinates === "parent" ? "default" : "secondary"}
+              variant={coordinates === "parent" ? "primary" : "secondary"}
               className="button"
               onClick={() => setCoordinates("parent")}
             >
               Parent
             </Button>
             <Button
-              variant={coordinates === "local" ? "default" : "secondary"}
+              variant={coordinates === "local" ? "primary" : "secondary"}
               className="button"
               onClick={() => setCoordinates("local")}
             >
               Local
             </Button>
             <Button
-              variant={coordinates === "world" ? "default" : "secondary"}
+              variant={coordinates === "world" ? "primary" : "secondary"}
               className="button"
               onClick={() => setCoordinates("world")}
             >
@@ -160,14 +160,14 @@ export default function Component() {
           </div>
           <div className="button-group">
             <Button
-              variant={mode === "absolute" ? "default" : "secondary"}
+              variant={mode === "absolute" ? "primary" : "secondary"}
               className="button"
               onClick={() => setMode("absolute")}
             >
               Absolute
             </Button>
             <Button
-              variant={mode === "relative" ? "default" : "secondary"}
+              variant={mode === "relative" ? "primary" : "secondary"}
               className="button"
               onClick={() => setMode("relative")}
             >
@@ -243,7 +243,7 @@ export default function Component() {
             {["XYZ", "YXZ", "ZXY", "ZYX", "XZY", "YZX"].map((order) => (
               <Button
                 key={order}
-                variant={rotationOrder === order.toLowerCase() ? "default" : "outline"}
+                variant={rotationOrder === order.toLowerCase() ? "primary" : "outline"}
                 className="rotation-button"
                 onClick={() => setRotationOrder(order.toLowerCase())}
               >
@@ -287,21 +287,21 @@ export default function Component() {
           </div>
           <div className="button-group">
             <Button
-              variant={scaleMode === "single" ? "default" : "outline"}
+              variant={scaleMode === "single" ? "primary" : "outline"}
               className="button"
               onClick={() => setScaleMode("single")}
             >
               Single
             </Button>
             <Button
-              variant={scaleMode === "locked" ? "default" : "outline"}
+              variant={scaleMode === "locked" ? "primary" : "outline"}
               className="button"
               onClick={() => setScaleMode("locked")}
             >
               Locked
             </Button>
             <Button
-              variant={scaleMode === "proportional" ? "default" : "outline"}
+              variant={scaleMode === "proportional" ? "primary" : "outline"}
               className="button"
               onClick={() => setScaleMode("proportional")}
             >
