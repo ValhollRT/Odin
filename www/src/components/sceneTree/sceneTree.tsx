@@ -2,7 +2,20 @@ import React, { useState, useCallback } from "react";
 import { Container, IconType, useAppContext } from "../../context/AppContext";
 import "./scene-tree-styles.css";
 import { createGeometry, geometryData } from "../../engine/GeometryFactory";
-import { ChevronRight, ChevronDown, Eye, EyeOff, Lock, Unlock, Folder, Box, Type, Image, Video, Music } from "lucide-react";
+import {
+  ChevronRight,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  Lock,
+  Unlock,
+  Folder,
+  Box,
+  Type,
+  Image,
+  Video,
+  Music,
+} from "lucide-react";
 
 // Interfaz para los nodos del árbol
 interface TreeNode {
@@ -33,7 +46,8 @@ export const SceneTree: React.FC = () => {
     return (
       <div
         key={node.id}
-        className={`scene-tree-item ${isDraggingOver ? "scene-tree-item-over" : ""}`}
+        className={`scene-tree-item 
+        ${isDraggingOver ? `scene-tree-item-over scene-tree-item-over-${dropPosition}` : ""}`}
         draggable
         onDragStart={(e) => handleDragStart(e, node)}
         onDragOver={(e) => handleDragOver(e, node)}
@@ -45,7 +59,13 @@ export const SceneTree: React.FC = () => {
           onDoubleClick={(e) => handleDoubleClick(e, node)}
         >
           {node.children.length > 0 && (
-            <button className="expand-button" onClick={(e) => { e.stopPropagation(); toggleExpand(node.id); }}>
+            <button
+              className="expand-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleExpand(node.id);
+              }}
+            >
               {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
             </button>
           )}
@@ -72,8 +92,9 @@ export const SceneTree: React.FC = () => {
           {node.icons?.map((iconType, index) => (
             <div
               key={index}
-              className={`object-icon ${selectedIcon && selectedIcon.id === node.id && selectedIcon.type === iconType ? "selected-icon" : ""
-                }`}
+              className={`object-icon ${
+                selectedIcon && selectedIcon.id === node.id && selectedIcon.type === iconType ? "selected-icon" : ""
+              }`}
               draggable
               onDragStart={(e) => handleDragStart(e, node, iconType)}
               onClick={() => handleIconClick(node.id, iconType)}
@@ -84,9 +105,7 @@ export const SceneTree: React.FC = () => {
           <span>{node.name}</span>
         </div>
         {isExpanded && (
-          <div className="scene-tree-item-children">
-            {node.children.map((child) => renderNode(child, level + 1))}
-          </div>
+          <div className="scene-tree-item-children">{node.children.map((child) => renderNode(child, level + 1))}</div>
         )}
       </div>
     );
@@ -104,10 +123,17 @@ export const SceneTree: React.FC = () => {
     e.preventDefault();
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
-    const height = rect.height;
+
+    // Calcular la posición relativa dentro del elemento
     let position: "before" | "inside" | "after" = "inside";
-    if (y < height * 0.25) position = "before";
-    else if (y > height * 0.75) position = "after";
+    if (y < rect.height * 0.33) {
+      position = "before";
+    } else if (y > rect.height * 0.67) {
+      position = "after";
+    }
+
+    console.log("handleDragOver", position, rect.height);
+
     setTargetNode(node);
     setDropPosition(position);
   }, []);
@@ -283,6 +309,7 @@ const insertNode = (
   targetId: string,
   position: "before" | "inside" | "after"
 ): TreeNode[] => {
+  console.log("insertNode", nodes, node, targetId, position);
   for (let i = 0; i < nodes.length; i++) {
     if (nodes[i].id === targetId) {
       if (position === "before") {
