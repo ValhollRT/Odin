@@ -1,5 +1,5 @@
 import GeometryCreator from "./GeometryCreator";
-import GeometryDropZone from "./GeometryDropZone";
+import { SceneTree } from "./sceneTree/sceneTree";
 import TransformPanel from "./transformPanel/TransformPanel";
 import { Viewport } from "./viewport/Viewport";
 
@@ -13,7 +13,9 @@ export default function MainWindow() {
         {/* <AnimationTimelineEditor /> */}
         <TransformPanel />
       </div>
-      <GeometryDropZone />
+      <div className="component">
+        <SceneTree />
+      </div>
       <div className="canvas-container component-viewport">
         <Viewport />
       </div>

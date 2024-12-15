@@ -19,10 +19,6 @@ const GeometryCreator = () => {
   const [activeTab, setActiveTab] = useState("geometries");
   const { containers } = useAppContext();
 
-  useEffect(() => {
-    console.log(containers);
-  }, [containers]);
-
   const handleDragStart = (e: React.DragEvent, type: string) => {
     e.dataTransfer.setData("geometryType", type);
   };

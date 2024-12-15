@@ -41,6 +41,7 @@ export const updateObjectProperty = (
 };
 
 export const findAndRemoveItemById = (items: Container[], id: string): [Container | null, Container[]] => {
+  console.log("findAndRemoveItemById", items, id)
   for (let i = 0; i < items.length; i++) {
     if (items[i].id === id) {
       const [removedItem] = items.splice(i, 1);
