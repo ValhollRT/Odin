@@ -120,7 +120,7 @@ export const SceneTree: React.FC = () => {
   }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent, node: TreeNode) => {
-    e.preventDefault();
+    e.stopPropagation();
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
 
@@ -132,7 +132,7 @@ export const SceneTree: React.FC = () => {
       position = "after";
     }
 
-    console.log("handleDragOver", position, rect.height);
+    console.log("handleDragOver", node.id, position, rect.height);
 
     setTargetNode(node);
     setDropPosition(position);
