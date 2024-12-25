@@ -119,7 +119,8 @@ export const SceneTree: React.FC = () => {
   }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent, node: TreeNode) => {
-    e.stopPropagation();
+    e.preventDefault(); // Permite el drop
+    e.stopPropagation(); // Evita propagación a padres
     const firstChild = e.currentTarget.querySelector('.scene-tree-item-content');
     if (!firstChild) return;
 
@@ -134,17 +135,18 @@ export const SceneTree: React.FC = () => {
       position = "after";
     }
 
-    // console.log("handleDragOver",e.currentTarget, node.id, position, rect.height);
+    console.log("handleDragOver",e.currentTarget, node.id, position, rect.height);
 
     setTargetNode(node);
     setDropPosition(position);
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent, node: TreeNode) => {
-    console.log("handleDrop", e, node)
     e.preventDefault();
     const draggedNodeId = e.dataTransfer.getData("nodeId");
     const iconType = e.dataTransfer.getData("iconType") as IconType;
+
+    console.log("handleDrop", e.currentTarget, node.id, draggedNodeId, iconType)
 
     if (draggedNodeId) {
       setTreeData((prevTree) => {
