@@ -71,25 +71,17 @@
     background-color: #3b82f6; /* Color de la línea "after" */
   }
   
-  .scene-tree-item-over-inside > .scene-tree-item-content {
+  .scene-tree-item-over-inside {
     border: 2px dashed #3b82f6; /* Borde punteado para 'inside' */
     background-color: #e0f2fe; /* Azul claro para resaltar */
   }
 
-  .scene-tree-item-content {
-    transition: background-color 0.2s ease, border 0.2s ease; /* Animaciones suaves */
-  }
-  
   .scene-tree-item-over-before {
     border-top: 2px solid #3b82f6;
   }
   
   .scene-tree-item-over-after {
     border-bottom: 2px solid #3b82f6;
-  }
-  
-  .scene-tree-item-over-inside {
-    border: 2px solid #3b82f6;
   }
   
   .expand-button {

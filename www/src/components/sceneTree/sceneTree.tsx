@@ -46,15 +46,14 @@ export const SceneTree: React.FC = () => {
     return (
       <div
         key={node.id}
-        className={`scene-tree-item 
-        ${isDraggingOver ? `scene-tree-item-over scene-tree-item-over-${dropPosition}` : ""}`}
+        className={`scene-tree-item`}
         draggable
         onDragStart={(e) => handleDragStart(e, node)}
         onDragOver={(e) => handleDragOver(e, node)}
         onDrop={(e) => handleDrop(e, node)}
       >
         <div
-          className={`scene-tree-item-content ${selectedContainers.includes(node.id) ? "selected-icon" : ""}`}
+          className={`scene-tree-item-content ${isDraggingOver ? `scene-tree-item-over scene-tree-item-over-${dropPosition}` : ""} ${selectedContainers.includes(node.id) ? "selected-icon" : ""}`}
           onClick={(e) => handleContainerClick(e, node)}
           onDoubleClick={(e) => handleDoubleClick(e, node)}
         >
@@ -121,7 +120,10 @@ export const SceneTree: React.FC = () => {
 
   const handleDragOver = useCallback((e: React.DragEvent, node: TreeNode) => {
     e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
+    const firstChild = e.currentTarget.querySelector('.scene-tree-item-content');
+    if (!firstChild) return;
+
+    const rect = firstChild.getBoundingClientRect();
     const y = e.clientY - rect.top;
 
     // Calcular la posición relativa dentro del elemento
@@ -132,13 +134,14 @@ export const SceneTree: React.FC = () => {
       position = "after";
     }
 
-    console.log("handleDragOver", node.id, position, rect.height);
+    // console.log("handleDragOver",e.currentTarget, node.id, position, rect.height);
 
     setTargetNode(node);
     setDropPosition(position);
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent, node: TreeNode) => {
+    console.log("handleDrop", e, node)
     e.preventDefault();
     const draggedNodeId = e.dataTransfer.getData("nodeId");
     const iconType = e.dataTransfer.getData("iconType") as IconType;
