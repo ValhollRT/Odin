@@ -43,16 +43,15 @@ export const SceneTree: React.FC = () => {
     const isDraggingOver = targetNode?.id === node.id;
     const isExpanded = node.children.length > 0 && containers.find((c) => c.id === node.id)?.isExpanded;
 
+    console.log("isDraggingOver", isDraggingOver)
     return (
-      <div
-        key={node.id}
-        className={`scene-tree-item`}
-        draggable
-        onDragStart={(e) => handleDragStart(e, node)}
-        onDragOver={(e) => handleDragOver(e, node)}
-        onDrop={(e) => handleDrop(e, node)}
-      >
+      <>
         <div
+          key={node.id} 
+          draggable
+          onDragStart={(e) => handleDragStart(e, node)}
+          onDragOver={(e) => handleDragOver(e, node)}
+          onDrop={(e) => handleDrop(e, node)}
           className={`scene-tree-item-content ${isDraggingOver ? `scene-tree-item-over scene-tree-item-over-${dropPosition}` : ""} ${selectedContainers.includes(node.id) ? "selected-icon" : ""}`}
           onClick={(e) => handleContainerClick(e, node)}
           onDoubleClick={(e) => handleDoubleClick(e, node)}
@@ -106,7 +105,7 @@ export const SceneTree: React.FC = () => {
         {isExpanded && (
           <div className="scene-tree-item-children">{node.children.map((child) => renderNode(child, level + 1))}</div>
         )}
-      </div>
+      </>
     );
   };
 
@@ -121,7 +120,8 @@ export const SceneTree: React.FC = () => {
   const handleDragOver = useCallback((e: React.DragEvent, node: TreeNode) => {
     e.preventDefault(); // Permite el drop
     e.stopPropagation(); // Evita propagación a padres
-    const firstChild = e.currentTarget.querySelector(".scene-tree-item-content");
+    const firstChild = e.currentTarget;
+    console.log(firstChild, e.currentTarget)
     if (!firstChild) return;
 
     const rect = firstChild.getBoundingClientRect();
@@ -166,98 +166,99 @@ export const SceneTree: React.FC = () => {
   };
 
   // 3. Modificamos el handleDrop
-  const handleDrop = useCallback((e: React.DragEvent, targetNode: TreeNode) => {
-    e.preventDefault();
-    e.stopPropagation(); // Evita propagación a padres
+  const handleDrop = useCallback(
+    (e: React.DragEvent, targetNode: TreeNode) => {
+      e.preventDefault();
+      e.stopPropagation(); // Evita propagación a padres
 
-    const draggedNodeId = e.dataTransfer.getData("nodeId");
-    const iconType = e.dataTransfer.getData("iconType") as IconType;
-  
-    console.log("handleDrop", draggedNodeId, targetNode.id, containers);
-  
-    // Si es un drop de icono, mantenemos la lógica existente
-    if (iconType) {
+      const draggedNodeId = e.dataTransfer.getData("nodeId");
+      const iconType = e.dataTransfer.getData("iconType") as IconType;
+
+      console.log("handleDrop", draggedNodeId, targetNode.id, containers);
+
+      // Si es un drop de icono, mantenemos la lógica existente
+      if (iconType) {
+        setTreeData((prevTree) => {
+          const draggedNode = findNode(prevTree, draggedNodeId);
+          if (!draggedNode) return prevTree;
+          return updateNodeIcons(prevTree, targetNode.id, [...(targetNode.icons || []), iconType]);
+        });
+        return;
+      }
+
+      // Validaciones importantes
+      if (!draggedNodeId || draggedNodeId === targetNode.id) {
+        return;
+      }
+
       setTreeData((prevTree) => {
-        const draggedNode = findNode(prevTree, draggedNodeId);
-        if (!draggedNode) return prevTree;
-        return updateNodeIcons(prevTree, targetNode.id, [...(targetNode.icons || []), iconType]);
-      });
-      return;
-    }
-  
-    // Validaciones importantes
-    if (!draggedNodeId || draggedNodeId === targetNode.id) {
-      return;
-    }
-  
-    setTreeData((prevTree) => {
-      // 1. Encontrar el nodo arrastrado y su padre
-      const draggedNodeInfo = findNodeAndParent(prevTree, draggedNodeId);
-      if (!draggedNodeInfo) return prevTree;
-      
-      const { node: draggedNode, parent: draggedParent } = draggedNodeInfo;
-      
-      // 2. Validar que no estamos intentando mover un nodo a uno de sus descendientes
-      if (isDescendant(draggedNode, targetNode)) {
-        return prevTree;
-      }
-      
-      // 3. Crear una copia del árbol
-      const newTree = JSON.parse(JSON.stringify(prevTree));
-      
-      // 4. Encontrar las nuevas referencias en el árbol copiado
-      const newDraggedNodeInfo = findNodeAndParent(newTree, draggedNodeId);
-      const newTargetNodeInfo = findNodeAndParent(newTree, targetNode.id);
-      
-      if (!newDraggedNodeInfo || !newTargetNodeInfo) return prevTree;
-      
-      const { node: newDraggedNode, parent: newDraggedParent } = newDraggedNodeInfo;
-      const { node: newTargetNode, parent: newTargetParent } = newTargetNodeInfo;
-  
-      // 5. Remover el nodo de su posición original
-      if (newDraggedParent) {
-        newDraggedParent.children = newDraggedParent.children.filter(
-          child => child.id !== draggedNodeId
-        );
-      } else {
-        const index = newTree.findIndex((node: TreeNode) => node.id === draggedNodeId);
-        if (index !== -1) {
-          newTree.splice(index, 1);
+        // 1. Encontrar el nodo arrastrado y su padre
+        const draggedNodeInfo = findNodeAndParent(prevTree, draggedNodeId);
+        if (!draggedNodeInfo) return prevTree;
+
+        const { node: draggedNode, parent: draggedParent } = draggedNodeInfo;
+
+        // 2. Validar que no estamos intentando mover un nodo a uno de sus descendientes
+        if (isDescendant(draggedNode, targetNode)) {
+          return prevTree;
         }
-      }
-      
-      // 6. Insertar el nodo en la nueva posición según dropPosition
-      const position = dropPosition || "inside";
-  
-      switch(position) {
-        case "inside":
-          // El nodo se convierte en hijo del target
-          newTargetNode.children.push(newDraggedNode);
-          break;
-  
-        case "before":
-        case "after": {
-          // Para before y after, necesitamos insertar en el mismo nivel que el target
-          const targetArray = newTargetParent ? newTargetParent.children : newTree;
-          const targetIndex = targetArray.findIndex((node: TreeNode) => node.id === newTargetNode.id);
-          
-          if (targetIndex !== -1) {
-            // Para "before" insertamos en el índice actual
-            // Para "after" insertamos en el índice siguiente
-            const insertIndex = position === "before" ? targetIndex : targetIndex + 1;
-            targetArray.splice(insertIndex, 0, newDraggedNode);
+
+        // 3. Crear una copia del árbol
+        const newTree = JSON.parse(JSON.stringify(prevTree));
+
+        // 4. Encontrar las nuevas referencias en el árbol copiado
+        const newDraggedNodeInfo = findNodeAndParent(newTree, draggedNodeId);
+        const newTargetNodeInfo = findNodeAndParent(newTree, targetNode.id);
+
+        if (!newDraggedNodeInfo || !newTargetNodeInfo) return prevTree;
+
+        const { node: newDraggedNode, parent: newDraggedParent } = newDraggedNodeInfo;
+        const { node: newTargetNode, parent: newTargetParent } = newTargetNodeInfo;
+
+        // 5. Remover el nodo de su posición original
+        if (newDraggedParent) {
+          newDraggedParent.children = newDraggedParent.children.filter((child) => child.id !== draggedNodeId);
+        } else {
+          const index = newTree.findIndex((node: TreeNode) => node.id === draggedNodeId);
+          if (index !== -1) {
+            newTree.splice(index, 1);
           }
-          break;
         }
-      }
-      
-      return newTree;
-    });
-    
-    setDraggingNode(null);
-    setTargetNode(null);
-    setDropPosition(null);
-  }, [dropPosition, findNodeAndParent, isDescendant]);
+
+        // 6. Insertar el nodo en la nueva posición según dropPosition
+        const position = dropPosition || "inside";
+
+        switch (position) {
+          case "inside":
+            // El nodo se convierte en hijo del target
+            newTargetNode.children.push(newDraggedNode);
+            break;
+
+          case "before":
+          case "after": {
+            // Para before y after, necesitamos insertar en el mismo nivel que el target
+            const targetArray = newTargetParent ? newTargetParent.children : newTree;
+            const targetIndex = targetArray.findIndex((node: TreeNode) => node.id === newTargetNode.id);
+
+            if (targetIndex !== -1) {
+              // Para "before" insertamos en el índice actual
+              // Para "after" insertamos en el índice siguiente
+              const insertIndex = position === "before" ? targetIndex : targetIndex + 1;
+              targetArray.splice(insertIndex, 0, newDraggedNode);
+            }
+            break;
+          }
+        }
+
+        return newTree;
+      });
+
+      setDraggingNode(null);
+      setTargetNode(null);
+      setDropPosition(null);
+    },
+    [dropPosition, findNodeAndParent, isDescendant]
+  );
 
   const handleMainDrop = (e: React.DragEvent) => {
     const geometryType = e.dataTransfer.getData("geometryType") as IconType;
