@@ -4,7 +4,7 @@ import { useAppContext } from "../../context/AppContext";
 import { Grid } from "../../engine/Grid";
 
 export const Viewport = () => {
-  const { selectedContainers, setSelectedContainers, meshes } = useAppContext();
+  const { selectedNodes: selectedContainers, setSelectedNodes: setSelectedContainers, meshes } = useAppContext();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gizmoManagerRef = useRef<GizmoManager | null>(null);
   const { setScene } = useAppContext();

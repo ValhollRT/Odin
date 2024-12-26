@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { Container, IconType, useAppContext } from "../../context/AppContext";
+import { useAppContext } from "../../context/AppContext";
 import "./scene-tree-styles.css";
 import { createGeometry, geometryData } from "../../engine/GeometryFactory";
 import {
@@ -15,22 +15,27 @@ import {
   Image,
   Video,
   Music,
+  Axis3DIcon,
+  Axis3D,
+  Move3DIcon,
 } from "lucide-react";
 
-// Interfaz para los nodos del árbol
-interface TreeNode {
+export type IconType = "geometry" | "text" | "image" | "video" | "audio" | "axis";
+
+export interface TreeNode {
   id: string;
+  color?: string;
   name: string;
-  type?: IconType; // Tipo de icono, si aplica
+  isExpanded?: boolean;
+  meshId?: string;
+  icons: IconType[];
+  visible: boolean;
+  locked: boolean;
   children: TreeNode[];
-  visible?: boolean;
-  locked?: boolean;
-  icons?: IconType[];
-  // ... otras propiedades que necesites ...
 }
 
 export const SceneTree: React.FC = () => {
-  const { scene, containers, setContainers, setMeshes } = useAppContext();
+  const { scene, nodes: containers, setNodes: setContainers, setMeshes } = useAppContext();
   const [treeData, setTreeData] = useState<TreeNode[]>(containers);
   const [draggingNode, setDraggingNode] = useState<TreeNode | null>(null);
   const [targetNode, setTargetNode] = useState<TreeNode | null>(null);
@@ -43,11 +48,10 @@ export const SceneTree: React.FC = () => {
     const isDraggingOver = targetNode?.id === node.id;
     const isExpanded = node.children.length > 0 && containers.find((c) => c.id === node.id)?.isExpanded;
 
-    console.log("isDraggingOver", isDraggingOver)
     return (
       <>
         <div
-          key={node.id} 
+          key={node.id}
           draggable
           onDragStart={(e) => handleDragStart(e, node)}
           onDragOver={(e) => handleDragOver(e, node)}
@@ -121,7 +125,6 @@ export const SceneTree: React.FC = () => {
     e.preventDefault(); // Permite el drop
     e.stopPropagation(); // Evita propagación a padres
     const firstChild = e.currentTarget;
-    console.log(firstChild, e.currentTarget)
     if (!firstChild) return;
 
     const rect = firstChild.getBoundingClientRect();
@@ -135,35 +138,36 @@ export const SceneTree: React.FC = () => {
       position = "after";
     }
 
-    // console.log("handleDragOver", e.currentTarget, node.id, position, rect.height);
-
     setTargetNode(node);
     setDropPosition(position);
   }, []);
 
   // 1. Primero la función findNodeAndParent
-  const findNodeAndParent = (
-    nodes: TreeNode[],
-    id: string,
-    parent: TreeNode | null = null
-  ): { node: TreeNode; parent: TreeNode | null } | null => {
-    for (const node of nodes) {
-      if (node.id === id) {
-        return { node, parent };
+  const findNodeAndParent = useCallback(
+    (
+      nodes: TreeNode[],
+      id: string,
+      parent: TreeNode | null = null
+    ): { node: TreeNode; parent: TreeNode | null } | null => {
+      for (const node of nodes) {
+        if (node.id === id) {
+          return { node, parent };
+        }
+        if (node.children.length > 0) {
+          const result = findNodeAndParent(node.children, id, node);
+          if (result) return result;
+        }
       }
-      if (node.children.length > 0) {
-        const result = findNodeAndParent(node.children, id, node);
-        if (result) return result;
-      }
-    }
-    return null;
-  };
+      return null;
+    },
+    []
+  );
 
   // 2. Función para verificar si un nodo es descendiente de otro
-  const isDescendant = (parent: TreeNode, child: TreeNode): boolean => {
+  const isDescendant = useCallback((parent: TreeNode, child: TreeNode): boolean => {
     if (parent.id === child.id) return true;
     return parent.children.some((node) => isDescendant(node, child));
-  };
+  }, []);
 
   // 3. Modificamos el handleDrop
   const handleDrop = useCallback(
@@ -173,8 +177,6 @@ export const SceneTree: React.FC = () => {
 
       const draggedNodeId = e.dataTransfer.getData("nodeId");
       const iconType = e.dataTransfer.getData("iconType") as IconType;
-
-      console.log("handleDrop", draggedNodeId, targetNode.id, containers);
 
       // Si es un drop de icono, mantenemos la lógica existente
       if (iconType) {
@@ -272,12 +274,12 @@ export const SceneTree: React.FC = () => {
         mesh && setMeshes((prev) => [...prev, mesh]);
 
         if (mesh) {
-          const newContainer: Container = {
+          const newContainer: TreeNode = {
             id: mesh.id,
             name: mesh.name,
             isExpanded: false,
             meshId: mesh.id,
-            icons: [],
+            icons: ["geometry", "axis"],
             visible: true,
             locked: true,
             children: [],
@@ -327,13 +329,11 @@ export const SceneTree: React.FC = () => {
 
   const handleDoubleClick = (e: React.MouseEvent, node: TreeNode) => {
     e.stopPropagation();
-    // ... lógica para editar el nombre del nodo ...
+    // TODO EDIT NAME NODE
   };
 
   const getTypeIcon = (type: IconType) => {
     switch (type) {
-      case "group":
-        return <Folder />;
       case "geometry":
         return <Box />;
       case "text":
@@ -345,7 +345,7 @@ export const SceneTree: React.FC = () => {
       case "audio":
         return <Music />;
       default:
-        return null;
+        return <Move3DIcon />;
     }
   };
 

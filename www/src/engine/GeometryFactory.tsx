@@ -12,8 +12,8 @@ import {
   Torus,
   TriangleRight,
 } from "lucide-react";
+import { generarUUID } from "../context/utils";
 
-// Interfaz para describir los datos de la geometría
 export interface GeometryData {
   name: string;
   icon?: React.ReactNode;
@@ -99,8 +99,8 @@ const geometryData: GeometryData[] = [
 
 // Función para crear la geometría
 const createGeometry = (scene: Scene, type: GeometryData): Mesh | null => {
-  const id = Date.now();
-  const meshName = `${id}`;
+  const guid = generarUUID(); 
+  const meshName = `${guid}`;
   if (type.method === "CreateText") {
     const { text, size } = type.options;
 
