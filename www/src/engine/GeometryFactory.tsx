@@ -1,7 +1,6 @@
-import { DynamicTexture, Mesh, MeshBuilder, Scene, StandardMaterial } from "@babylonjs/core";
+import { DynamicTexture, Mesh, MeshBuilder, Nullable, Scene, StandardMaterial } from "@babylonjs/core";
 import {
   Box,
-  ChevronRight,
   Cone,
   Cylinder,
   Diameter,
@@ -48,6 +47,16 @@ export interface GeometryData {
     | "CreateCapsule"
     | "CreateText";
   options?: any;
+}
+
+export type PluginType = "transform" | "geometry" | "text" | "image" | "video" | "audio" | "axis";
+export interface OdinPlugin {
+  type: PluginType;
+  icon?: React.ReactNode;
+}
+
+export interface TransformPlugin extends OdinPlugin {
+  type: 'transform';
 }
 
 // Definición de los datos de la geometría
@@ -98,7 +107,7 @@ const geometryData: GeometryData[] = [
 ];
 
 // Función para crear la geometría
-const createGeometry = (scene: Scene, type: GeometryData): Mesh | null => {
+const createGeometry = (scene: Scene, type: GeometryData): { mesh: Mesh; plugins: OdinPlugin[] } | null => {
   const guid = generarUUID(); 
   const meshName = `${guid}`;
   if (type.method === "CreateText") {
@@ -119,20 +128,25 @@ const createGeometry = (scene: Scene, type: GeometryData): Mesh | null => {
     textPlane.material = textMaterial;
     textPlane.position.y = 2.5;
 
-    return textPlane;
+    return {} as any;
   }
 
   // Crear geometrías estándar usando MeshBuilder
   const mesh = MeshBuilder[type.method](meshName, type.options, scene);
 
-  console.log(mesh);
+  const transformPlugin: TransformPlugin = {
+    type: "transform",
+    icon: type.icon
+  };
+
   if (mesh) {
-    mesh.position.x = (Math.random() - 0.5) * 20;
-    mesh.position.z = (Math.random() - 0.5) * 20;
-    mesh.position.y = 2.5;
-    return mesh;
+    mesh.position.x = 0;
+    mesh.position.z = 0;
+    mesh.position.y = 0;
+    return { mesh, plugins: [transformPlugin] };
+
   } else {
-    console.error(`Error al crear la geometría ${type.name}`);
+    console.error(`Error creating a mesh ${type.name}`);
     return null;
   }
 };

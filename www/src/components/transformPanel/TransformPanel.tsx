@@ -6,6 +6,7 @@ import { Separator } from "../ui/Separator"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./Collapsable"
 import { Input } from "../ui/Input"
 import "./transformPanel.css"
+import { useAppContext } from "../../context/AppContext"
 
 
 // Custom hook for scrubbing functionality with infinite dragging
@@ -102,17 +103,19 @@ const ScrubInput = ({ value, onChange, baseStep = 1, ...props }: { value: number
   )
 }
 
-export default function Component() {
+export const TransformPanel = () => {
+  const { selectedNodes } = useAppContext();
+
   const [coordinates, setCoordinates] = useState("parent")
   const [mode, setMode] = useState("absolute")
-  const [position, setPosition] = useState({ x: 318.1904, y: 157.1068, z: 0.0 })
+  const [position, setPosition] = useState({ x: 0.0, y: 0.0, z: 0.0 })
   const [rotation, setRotation] = useState({ x: 0.0, y: 0.0, z: 0.0 })
   const [rotationOrder, setRotationOrder] = useState("xyz")
   const [scale, setScale] = useState({ x: 1.0, y: 1.0, z: 1.0 })
   const [scaleMode, setScaleMode] = useState("locked")
   const [axisCenter, setAxisCenter] = useState({ x: 0.0, y: 0.0, z: 0.0 })
-  const [screenPosition, setScreenPosition] = useState({ x: 1659, y: -0 })
-  const [screenSize, setScreenSize] = useState({ x: 261, y: 261 })
+  const [screenPosition, setScreenPosition] = useState({ x: 0, y: 0 })
+  const [screenSize, setScreenSize] = useState({ x: 1, y: 1 })
 
   const handlePositionChange = (axis: keyof typeof position, value: number) => {
     setPosition(prev => ({ ...prev, [axis]: value }))
@@ -129,6 +132,13 @@ export default function Component() {
       setScale(prev => ({ ...prev, [axis]: value }))
     }
   }
+
+
+  useEffect(() => {
+    if (selectedNodes) {
+      
+    }
+  }, [selectedNodes]);
 
   return (
     <>
@@ -462,3 +472,5 @@ export default function Component() {
     </>
   )
 }
+
+export default TransformPanel;

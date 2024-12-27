@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { useAppContext } from "../../context/AppContext";
 import "./scene-tree-styles.css";
-import { createGeometry, geometryData } from "../../engine/GeometryFactory";
+import { createGeometry, geometryData, OdinPlugin, PluginType } from "../../engine/GeometryFactory";
 import {
   ChevronRight,
   ChevronDown,
@@ -9,38 +9,32 @@ import {
   EyeOff,
   Lock,
   Unlock,
-  Folder,
   Box,
   Type,
   Image,
   Video,
   Music,
-  Axis3DIcon,
-  Axis3D,
   Move3DIcon,
 } from "lucide-react";
-
-export type IconType = "geometry" | "text" | "image" | "video" | "audio" | "axis";
 
 export interface TreeNode {
   id: string;
   color?: string;
   name: string;
   isExpanded?: boolean;
-  meshId?: string;
-  icons: IconType[];
+  plugins: OdinPlugin[];
   visible: boolean;
   locked: boolean;
   children: TreeNode[];
 }
 
 export const SceneTree: React.FC = () => {
-  const { scene, nodes: containers, setNodes: setContainers, setMeshes } = useAppContext();
+  const { scene, nodes: containers, setNodes, setMeshes } = useAppContext();
   const [treeData, setTreeData] = useState<TreeNode[]>(containers);
   const [draggingNode, setDraggingNode] = useState<TreeNode | null>(null);
   const [targetNode, setTargetNode] = useState<TreeNode | null>(null);
   const [dropPosition, setDropPosition] = useState<"before" | "inside" | "after" | null>(null);
-  const [selectedIcon, setSelectedIcon] = useState<{ id: string; type: IconType } | null>(null);
+  const [selectedIcon, setSelectedIcon] = useState<{ id: string; type: PluginType } | null>(null);
   const [selectedContainers, setSelectedContainers] = useState<string[]>([]);
 
   // Función recursiva para renderizar los nodos del árbol
@@ -91,17 +85,17 @@ export const SceneTree: React.FC = () => {
               {node.locked ? <Lock size={16} /> : <Unlock size={16} />}
             </div>
           </div>
-          {node.icons?.map((iconType, index) => (
+          {node.plugins?.map((plugin, index) => (
             <div
               key={index}
               className={`object-icon ${
-                selectedIcon && selectedIcon.id === node.id && selectedIcon.type === iconType ? "selected-icon" : ""
+                selectedIcon && selectedIcon.id === node.id && selectedIcon.type === plugin.type ? "selected-icon" : ""
               }`}
               draggable
-              onDragStart={(e) => handleDragStart(e, node, iconType)}
-              onClick={() => handleIconClick(node.id, iconType)}
+              onDragStart={(e) => handleDragStart(e, node, plugin.type)}
+              onClick={() => handleIconClick(node.id, plugin.type)}
             >
-              {getTypeIcon(iconType)}
+              {getTypeIcon(plugin.type)}
             </div>
           ))}
           <span>{node.name}</span>
@@ -113,7 +107,7 @@ export const SceneTree: React.FC = () => {
     );
   };
 
-  const handleDragStart = useCallback((e: React.DragEvent, node: TreeNode, iconType?: IconType) => {
+  const handleDragStart = useCallback((e: React.DragEvent, node: TreeNode, iconType?: PluginType) => {
     setDraggingNode(node);
     e.dataTransfer.setData("nodeId", node.id);
     if (iconType) {
@@ -176,14 +170,14 @@ export const SceneTree: React.FC = () => {
       e.stopPropagation(); // Evita propagación a padres
 
       const draggedNodeId = e.dataTransfer.getData("nodeId");
-      const iconType = e.dataTransfer.getData("iconType") as IconType;
+      const iconType = e.dataTransfer.getData("iconType") as PluginType;
 
       // Si es un drop de icono, mantenemos la lógica existente
       if (iconType) {
         setTreeData((prevTree) => {
           const draggedNode = findNode(prevTree, draggedNodeId);
           if (!draggedNode) return prevTree;
-          return updateNodeIcons(prevTree, targetNode.id, [...(targetNode.icons || []), iconType]);
+          return updateNodeIcons(prevTree, targetNode.id, [...(targetNode.plugins.map((p) => p.type) || []), iconType]);
         });
         return;
       }
@@ -263,29 +257,30 @@ export const SceneTree: React.FC = () => {
   );
 
   const handleMainDrop = (e: React.DragEvent) => {
-    const geometryType = e.dataTransfer.getData("geometryType") as IconType;
+    const geometryType = e.dataTransfer.getData("geometryType") as PluginType;
 
     if (geometryType) {
       const typeData = geometryData.find((data) => data.name.toLowerCase() === geometryType);
 
       if (typeData && scene) {
-        const mesh = createGeometry(scene, typeData);
+        const result = createGeometry(scene, typeData);
+        if (result) {
+          const { mesh, plugins } = result;
+          mesh && setMeshes((prev) => [...prev, mesh]);
 
-        mesh && setMeshes((prev) => [...prev, mesh]);
-
-        if (mesh) {
-          const newContainer: TreeNode = {
-            id: mesh.id,
-            name: mesh.name,
-            isExpanded: false,
-            meshId: mesh.id,
-            icons: ["geometry", "axis"],
-            visible: true,
-            locked: true,
-            children: [],
-          };
-          setContainers((prev) => [...prev, newContainer]);
-          setTreeData((prevTree) => [...prevTree, newContainer]);
+          if (mesh) {
+            const newNode: TreeNode = {
+              id: mesh.id,
+              name: mesh.name,
+              isExpanded: false,
+              visible: true,
+              locked: true,
+              children: [],
+              plugins: plugins ?? [],
+            };
+            setNodes((prev) => [...prev, newNode]);
+            setTreeData((prevTree) => [...prevTree, newNode]);
+          }
         }
       }
     }
@@ -296,7 +291,7 @@ export const SceneTree: React.FC = () => {
   };
 
   const toggleExpand = useCallback((id: string) => {
-    setContainers((prev) => {
+    setNodes((prev) => {
       return prev.map((container) =>
         container.id === id ? { ...container, isExpanded: !container.isExpanded } : container
       );
@@ -311,12 +306,13 @@ export const SceneTree: React.FC = () => {
     setTreeData((prev) => updateNodeProperty(prev, id, "locked", (value: boolean) => !value));
   }, []);
 
-  const handleIconClick = useCallback((id: string, iconType: IconType) => {
+  const handleIconClick = useCallback((id: string, iconType: PluginType) => {
     setSelectedIcon((prev) => (prev && prev.id === id && prev.type === iconType ? null : { id, type: iconType }));
   }, []);
 
   const handleContainerClick = (e: React.MouseEvent, node: TreeNode) => {
     e.stopPropagation();
+    console.log("XXX NODE", node)
     if (e.shiftKey) {
       setSelectedContainers((prev) => {
         const newSelection = prev.includes(node.id) ? prev.filter((id) => id !== node.id) : [...prev, node.id];
@@ -332,7 +328,7 @@ export const SceneTree: React.FC = () => {
     // TODO EDIT NAME NODE
   };
 
-  const getTypeIcon = (type: IconType) => {
+  const getTypeIcon = (type: PluginType) => {
     switch (type) {
       case "geometry":
         return <Box />;
@@ -373,7 +369,7 @@ const findNode = (nodes: TreeNode[], id: string): TreeNode | null => {
   return null;
 };
 
-const updateNodeIcons = (nodes: TreeNode[], id: string, newIcons: IconType[]): TreeNode[] => {
+const updateNodeIcons = (nodes: TreeNode[], id: string, newIcons: PluginType[]): TreeNode[] => {
   return nodes.map((node) => {
     if (node.id === id) {
       return { ...node, icons: newIcons };
