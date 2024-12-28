@@ -11,12 +11,18 @@ import { useAppContext } from "../../context/AppContext"
 
 // Custom hook for scrubbing functionality with infinite dragging
 const useScrubInput = (initialValue: number, onChange: (value: number) => void, baseStep: number = 1) => {
+  const { selectedNodes, nodes, meshes } = useAppContext();
   const [value, setValue] = useState(initialValue)
   const isDragging = useRef(false)
   const lastClientX = useRef(0)
   const accumulatedDelta = useRef(0)
   const shiftKey = useRef(false)
   const ctrlKey = useRef(false)
+
+
+  useEffect( () => {
+    console.log("selectedNodes, nodes, meshes", selectedNodes, nodes, meshes)
+  }, [selectedNodes])
 
   const getStep = useCallback(() => {
     if (ctrlKey.current && shiftKey.current) return baseStep * 0.001
@@ -34,6 +40,7 @@ const useScrubInput = (initialValue: number, onChange: (value: number) => void, 
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
   }, [])
+
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isDragging.current) {

@@ -2,20 +2,8 @@ import React, { useState, useCallback } from "react";
 import { useAppContext } from "../../context/AppContext";
 import "./scene-tree-styles.css";
 import { createGeometry, geometryData, OdinPlugin, PluginType } from "../../engine/GeometryFactory";
-import {
-  ChevronRight,
-  ChevronDown,
-  Eye,
-  EyeOff,
-  Lock,
-  Unlock,
-  Box,
-  Type,
-  Image,
-  Video,
-  Music,
-  Move3DIcon,
-} from "lucide-react";
+import { ChevronRight, ChevronDown, Eye, EyeOff, Lock, Unlock } from "lucide-react";
+import { generarUUID } from "../../context/utils";
 
 export interface TreeNode {
   id: string;
@@ -29,18 +17,28 @@ export interface TreeNode {
 }
 
 export const SceneTree: React.FC = () => {
-  const { scene, nodes: containers, setNodes, setMeshes } = useAppContext();
-  const [treeData, setTreeData] = useState<TreeNode[]>(containers);
+  const { scene, nodes, setNodes, setMeshes, setSelectedNodes, selectedNodes } = useAppContext();
+  const [treeData, setTreeData] = useState<TreeNode[]>(nodes);
   const [draggingNode, setDraggingNode] = useState<TreeNode | null>(null);
   const [targetNode, setTargetNode] = useState<TreeNode | null>(null);
   const [dropPosition, setDropPosition] = useState<"before" | "inside" | "after" | null>(null);
   const [selectedIcon, setSelectedIcon] = useState<{ id: string; type: PluginType } | null>(null);
-  const [selectedContainers, setSelectedContainers] = useState<string[]>([]);
+
+  console.log("XXX treeData", treeData);
+  console.log("XXX Nodes", nodes);
 
   // Función recursiva para renderizar los nodos del árbol
   const renderNode = (node: TreeNode, level: number) => {
     const isDraggingOver = targetNode?.id === node.id;
-    const isExpanded = node.children.length > 0 && containers.find((c) => c.id === node.id)?.isExpanded;
+    const isExpanded = node.children.length > 0 && nodes.find((c) => c.id === node.id)?.isExpanded;
+
+    const renderPluginIcon = (plugin: OdinPlugin) => {
+      console.log("renderPluginIcon", plugin);
+      if (React.isValidElement(plugin.icon)) {
+        return React.cloneElement(plugin.icon);
+      }
+      return null;
+    };
 
     return (
       <>
@@ -50,7 +48,7 @@ export const SceneTree: React.FC = () => {
           onDragStart={(e) => handleDragStart(e, node)}
           onDragOver={(e) => handleDragOver(e, node)}
           onDrop={(e) => handleDrop(e, node)}
-          className={`scene-tree-item-content ${isDraggingOver ? `scene-tree-item-over scene-tree-item-over-${dropPosition}` : ""} ${selectedContainers.includes(node.id) ? "selected-icon" : ""}`}
+          className={`scene-tree-item-content ${isDraggingOver ? `scene-tree-item-over scene-tree-item-over-${dropPosition}` : ""} ${selectedNodes.includes(node.id) ? "selected-icon" : ""}`}
           onClick={(e) => handleContainerClick(e, node)}
           onDoubleClick={(e) => handleDoubleClick(e, node)}
         >
@@ -95,7 +93,7 @@ export const SceneTree: React.FC = () => {
               onDragStart={(e) => handleDragStart(e, node, plugin.type)}
               onClick={() => handleIconClick(node.id, plugin.type)}
             >
-              {getTypeIcon(plugin.type)}
+              {renderPluginIcon(plugin)}
             </div>
           ))}
           <span>{node.name}</span>
@@ -163,16 +161,62 @@ export const SceneTree: React.FC = () => {
     return parent.children.some((node) => isDescendant(node, child));
   }, []);
 
+  // Función para encontrar el nodo padre dado un ID de hijo
+  const findParentNode = (nodes: TreeNode[], childId: string): TreeNode | null => {
+    for (const node of nodes) {
+      // Comprueba si alguno de los hijos directos tiene el ID buscado
+      if (node.children.some((child) => child.id === childId)) {
+        return node;
+      }
+      // Si no está en los hijos directos, busca recursivamente en los hijos
+      const foundInChildren = findParentNode(node.children, childId);
+      if (foundInChildren) return foundInChildren;
+    }
+    return null;
+  };
+
+  // Actualizar el findNode existente para hacerlo más robusto
+  const findNode = (nodes: TreeNode[], id: string): TreeNode | null => {
+    for (const node of nodes) {
+      if (node.id === id) return node;
+      if (node.children.length > 0) {
+        const found = findNode(node.children, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  // Función auxiliar para actualizar nodos
+  const updateNodeProperty = <T extends keyof TreeNode, K extends TreeNode[T]>(
+    nodes: TreeNode[],
+    id: string,
+    property: T,
+    value: K | ((oldValue: K) => K)
+  ): TreeNode[] => {
+    return nodes.map((node) => {
+      if (node.id === id) {
+        const oldValue = node[property] as K;
+        const newValue = typeof value === "function" ? value(oldValue) : value;
+        return { ...node, [property]: newValue };
+      }
+      if (node.children.length > 0) {
+        return { ...node, children: updateNodeProperty(node.children, id, property, value) };
+      }
+      return node;
+    });
+  };
+
   // 3. Modificamos el handleDrop
   const handleDrop = useCallback(
     (e: React.DragEvent, targetNode: TreeNode) => {
       e.preventDefault();
-      e.stopPropagation(); // Evita propagación a padres
+      e.stopPropagation();
 
       const draggedNodeId = e.dataTransfer.getData("nodeId");
       const iconType = e.dataTransfer.getData("iconType") as PluginType;
 
-      // Si es un drop de icono, mantenemos la lógica existente
+      // Manejo de drop de iconos (sin cambios)
       if (iconType) {
         setTreeData((prevTree) => {
           const draggedNode = findNode(prevTree, draggedNodeId);
@@ -182,38 +226,35 @@ export const SceneTree: React.FC = () => {
         return;
       }
 
-      // Validaciones importantes
       if (!draggedNodeId || draggedNodeId === targetNode.id) {
         return;
       }
 
       setTreeData((prevTree) => {
-        // 1. Encontrar el nodo arrastrado y su padre
-        const draggedNodeInfo = findNodeAndParent(prevTree, draggedNodeId);
-        if (!draggedNodeInfo) return prevTree;
+        // En lugar de usar JSON.parse/stringify, creamos una función de clonado que preserve los iconos
+        const cloneNode = (node: TreeNode): TreeNode => {
+          return {
+            ...node,
+            plugins: node.plugins.map((plugin) => ({
+              ...plugin,
+              // Preservamos el icono original
+              icon: plugin.icon,
+            })),
+            children: node.children.map((child) => cloneNode(child)),
+          };
+        };
 
-        const { node: draggedNode, parent: draggedParent } = draggedNodeInfo;
+        // Clonamos el árbol preservando los iconos
+        const newTree = prevTree.map((node) => cloneNode(node));
 
-        // 2. Validar que no estamos intentando mover un nodo a uno de sus descendientes
-        if (isDescendant(draggedNode, targetNode)) {
-          return prevTree;
-        }
+        const sourceNode = findNode(newTree, draggedNodeId);
+        const sourceParent = findParentNode(newTree, draggedNodeId);
 
-        // 3. Crear una copia del árbol
-        const newTree = JSON.parse(JSON.stringify(prevTree));
+        if (!sourceNode) return prevTree;
 
-        // 4. Encontrar las nuevas referencias en el árbol copiado
-        const newDraggedNodeInfo = findNodeAndParent(newTree, draggedNodeId);
-        const newTargetNodeInfo = findNodeAndParent(newTree, targetNode.id);
-
-        if (!newDraggedNodeInfo || !newTargetNodeInfo) return prevTree;
-
-        const { node: newDraggedNode, parent: newDraggedParent } = newDraggedNodeInfo;
-        const { node: newTargetNode, parent: newTargetParent } = newTargetNodeInfo;
-
-        // 5. Remover el nodo de su posición original
-        if (newDraggedParent) {
-          newDraggedParent.children = newDraggedParent.children.filter((child) => child.id !== draggedNodeId);
+        // El resto del código de handleDrop sigue igual...
+        if (sourceParent) {
+          sourceParent.children = sourceParent.children.filter((child) => child.id !== draggedNodeId);
         } else {
           const index = newTree.findIndex((node: TreeNode) => node.id === draggedNodeId);
           if (index !== -1) {
@@ -221,26 +262,23 @@ export const SceneTree: React.FC = () => {
           }
         }
 
-        // 6. Insertar el nodo en la nueva posición según dropPosition
-        const position = dropPosition || "inside";
-
-        switch (position) {
+        switch (dropPosition) {
           case "inside":
-            // El nodo se convierte en hijo del target
-            newTargetNode.children.push(newDraggedNode);
+            const targetNodeInTree = findNode(newTree, targetNode.id);
+            if (targetNodeInTree) {
+              targetNodeInTree.children.push(sourceNode);
+            }
             break;
 
           case "before":
           case "after": {
-            // Para before y after, necesitamos insertar en el mismo nivel que el target
-            const targetArray = newTargetParent ? newTargetParent.children : newTree;
-            const targetIndex = targetArray.findIndex((node: TreeNode) => node.id === newTargetNode.id);
+            const targetParent = findParentNode(newTree, targetNode.id);
+            const targetArray = targetParent ? targetParent.children : newTree;
+            const targetIndex = targetArray.findIndex((node) => node.id === targetNode.id);
 
             if (targetIndex !== -1) {
-              // Para "before" insertamos en el índice actual
-              // Para "after" insertamos en el índice siguiente
-              const insertIndex = position === "before" ? targetIndex : targetIndex + 1;
-              targetArray.splice(insertIndex, 0, newDraggedNode);
+              const insertIndex = dropPosition === "after" ? targetIndex + 1 : targetIndex;
+              targetArray.splice(insertIndex, 0, sourceNode);
             }
             break;
           }
@@ -253,11 +291,13 @@ export const SceneTree: React.FC = () => {
       setTargetNode(null);
       setDropPosition(null);
     },
-    [dropPosition, findNodeAndParent, isDescendant]
+    [dropPosition]
   );
 
   const handleMainDrop = (e: React.DragEvent) => {
     const geometryType = e.dataTransfer.getData("geometryType") as PluginType;
+
+    console.log("XXX geometryType", geometryType);
 
     if (geometryType) {
       const typeData = geometryData.find((data) => data.name.toLowerCase() === geometryType);
@@ -269,9 +309,10 @@ export const SceneTree: React.FC = () => {
           mesh && setMeshes((prev) => [...prev, mesh]);
 
           if (mesh) {
+            const guid = generarUUID();
             const newNode: TreeNode = {
-              id: mesh.id,
-              name: mesh.name,
+              id: guid,
+              name: guid,
               isExpanded: false,
               visible: true,
               locked: true,
@@ -312,37 +353,20 @@ export const SceneTree: React.FC = () => {
 
   const handleContainerClick = (e: React.MouseEvent, node: TreeNode) => {
     e.stopPropagation();
-    console.log("XXX NODE", node)
+    console.log("XXX NODE", node);
     if (e.shiftKey) {
-      setSelectedContainers((prev) => {
+      setSelectedNodes((prev) => {
         const newSelection = prev.includes(node.id) ? prev.filter((id) => id !== node.id) : [...prev, node.id];
         return newSelection;
       });
     } else {
-      setSelectedContainers([node.id]);
+      setSelectedNodes([node.id]);
     }
   };
 
   const handleDoubleClick = (e: React.MouseEvent, node: TreeNode) => {
     e.stopPropagation();
     // TODO EDIT NAME NODE
-  };
-
-  const getTypeIcon = (type: PluginType) => {
-    switch (type) {
-      case "geometry":
-        return <Box />;
-      case "text":
-        return <Type />;
-      case "image":
-        return <Image />;
-      case "video":
-        return <Video />;
-      case "audio":
-        return <Music />;
-      default:
-        return <Move3DIcon />;
-    }
   };
 
   return (
@@ -372,7 +396,8 @@ const findNode = (nodes: TreeNode[], id: string): TreeNode | null => {
 const updateNodeIcons = (nodes: TreeNode[], id: string, newIcons: PluginType[]): TreeNode[] => {
   return nodes.map((node) => {
     if (node.id === id) {
-      return { ...node, icons: newIcons };
+      // Mantenemos los plugins existentes, solo actualizamos los iconos
+      return { ...node, plugins: node.plugins };
     }
     if (node.children.length > 0) {
       return { ...node, children: updateNodeIcons(node.children, id, newIcons) };

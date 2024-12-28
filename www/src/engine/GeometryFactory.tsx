@@ -1,16 +1,5 @@
 import { DynamicTexture, Mesh, MeshBuilder, Nullable, Scene, StandardMaterial } from "@babylonjs/core";
-import {
-  Box,
-  Cone,
-  Cylinder,
-  Diameter,
-  Disc,
-  Layers,
-  Pill,
-  Plane,
-  Torus,
-  TriangleRight,
-} from "lucide-react";
+import { Axis3D, Box, Cone, Cylinder, Diameter, Disc, Layers, Pill, Plane, Torus, TriangleRight } from "lucide-react";
 import { generarUUID } from "../context/utils";
 
 export interface GeometryData {
@@ -49,14 +38,19 @@ export interface GeometryData {
   options?: any;
 }
 
-export type PluginType = "transform" | "geometry" | "text" | "image" | "video" | "audio" | "axis";
+export type PluginType = "transform" | "mesh" | "text" | "image" | "video" | "audio" | "axis";
 export interface OdinPlugin {
   type: PluginType;
   icon?: React.ReactNode;
 }
 
 export interface TransformPlugin extends OdinPlugin {
-  type: 'transform';
+  type: "transform";
+}
+
+export interface MeshPlugin extends OdinPlugin {
+  type: "mesh";
+  meshId: string;
 }
 
 // Definición de los datos de la geometría
@@ -108,7 +102,7 @@ const geometryData: GeometryData[] = [
 
 // Función para crear la geometría
 const createGeometry = (scene: Scene, type: GeometryData): { mesh: Mesh; plugins: OdinPlugin[] } | null => {
-  const guid = generarUUID(); 
+  const guid = generarUUID();
   const meshName = `${guid}`;
   if (type.method === "CreateText") {
     const { text, size } = type.options;
@@ -136,15 +130,20 @@ const createGeometry = (scene: Scene, type: GeometryData): { mesh: Mesh; plugins
 
   const transformPlugin: TransformPlugin = {
     type: "transform",
-    icon: type.icon
+    icon: <Axis3D />,
+  };
+
+  const meshPlugin: MeshPlugin = {
+    type: "mesh",
+    icon: type.icon,
+    meshId: mesh.id
   };
 
   if (mesh) {
     mesh.position.x = 0;
     mesh.position.z = 0;
     mesh.position.y = 0;
-    return { mesh, plugins: [transformPlugin] };
-
+    return { mesh, plugins: [transformPlugin, meshPlugin] };
   } else {
     console.error(`Error creating a mesh ${type.name}`);
     return null;
