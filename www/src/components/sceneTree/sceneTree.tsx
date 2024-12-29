@@ -17,23 +17,34 @@ export interface TreeNode {
 }
 
 export const SceneTree: React.FC = () => {
-  const { scene, nodes, setNodes, setMeshes, setSelectedNodes, selectedNodes } = useAppContext();
-  const [treeData, setTreeData] = useState<TreeNode[]>(nodes);
-  const [draggingNode, setDraggingNode] = useState<TreeNode | null>(null);
+  const { scene, setMeshes, setSelectedNodes, selectedNodes } = useAppContext();
+  const [treeData, setTreeData] = useState<TreeNode[]>([]);
   const [targetNode, setTargetNode] = useState<TreeNode | null>(null);
   const [dropPosition, setDropPosition] = useState<"before" | "inside" | "after" | null>(null);
   const [selectedIcon, setSelectedIcon] = useState<{ id: string; type: PluginType } | null>(null);
 
-  console.log("XXX treeData", treeData);
-  console.log("XXX Nodes", nodes);
+
+  const findNodeById = (nodes: TreeNode[], id: string): TreeNode | undefined => {
+    for (const node of nodes) {
+      if (node.id === id) {
+        return node;
+      }
+      if (node.children.length > 0) {
+        const found = findNodeById(node.children, id);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return undefined;
+  };
 
   // Función recursiva para renderizar los nodos del árbol
   const renderNode = (node: TreeNode, level: number) => {
     const isDraggingOver = targetNode?.id === node.id;
-    const isExpanded = node.children.length > 0 && nodes.find((c) => c.id === node.id)?.isExpanded;
+    const isExpanded = node.children.length > 0 && findNodeById(treeData, node.id)?.isExpanded;
 
     const renderPluginIcon = (plugin: OdinPlugin) => {
-      console.log("renderPluginIcon", plugin);
       if (React.isValidElement(plugin.icon)) {
         return React.cloneElement(plugin.icon);
       }
@@ -106,7 +117,6 @@ export const SceneTree: React.FC = () => {
   };
 
   const handleDragStart = useCallback((e: React.DragEvent, node: TreeNode, iconType?: PluginType) => {
-    setDraggingNode(node);
     e.dataTransfer.setData("nodeId", node.id);
     if (iconType) {
       e.dataTransfer.setData("iconType", iconType);
@@ -162,7 +172,7 @@ export const SceneTree: React.FC = () => {
   }, []);
 
   // Función para encontrar el nodo padre dado un ID de hijo
-  const findParentNode = (nodes: TreeNode[], childId: string): TreeNode | null => {
+  const findParentNode = useCallback((nodes: TreeNode[], childId: string): TreeNode | null => {
     for (const node of nodes) {
       // Comprueba si alguno de los hijos directos tiene el ID buscado
       if (node.children.some((child) => child.id === childId)) {
@@ -173,10 +183,10 @@ export const SceneTree: React.FC = () => {
       if (foundInChildren) return foundInChildren;
     }
     return null;
-  };
+  },[]);
 
   // Actualizar el findNode existente para hacerlo más robusto
-  const findNode = (nodes: TreeNode[], id: string): TreeNode | null => {
+  const findNode = useCallback((nodes: TreeNode[], id: string): TreeNode | null => {
     for (const node of nodes) {
       if (node.id === id) return node;
       if (node.children.length > 0) {
@@ -185,10 +195,10 @@ export const SceneTree: React.FC = () => {
       }
     }
     return null;
-  };
+  },[]);
 
   // Función auxiliar para actualizar nodos
-  const updateNodeProperty = <T extends keyof TreeNode, K extends TreeNode[T]>(
+  const updateNodeProperty = useCallback(<T extends keyof TreeNode, K extends TreeNode[T]>(
     nodes: TreeNode[],
     id: string,
     property: T,
@@ -205,7 +215,7 @@ export const SceneTree: React.FC = () => {
       }
       return node;
     });
-  };
+  },[]);
 
   // 3. Modificamos el handleDrop
   const handleDrop = useCallback(
@@ -287,17 +297,14 @@ export const SceneTree: React.FC = () => {
         return newTree;
       });
 
-      setDraggingNode(null);
       setTargetNode(null);
       setDropPosition(null);
     },
-    [dropPosition]
+    [dropPosition, findNode, findParentNode]
   );
 
   const handleMainDrop = (e: React.DragEvent) => {
     const geometryType = e.dataTransfer.getData("geometryType") as PluginType;
-
-    console.log("XXX geometryType", geometryType);
 
     if (geometryType) {
       const typeData = geometryData.find((data) => data.name.toLowerCase() === geometryType);
@@ -319,7 +326,6 @@ export const SceneTree: React.FC = () => {
               children: [],
               plugins: plugins ?? [],
             };
-            setNodes((prev) => [...prev, newNode]);
             setTreeData((prevTree) => [...prevTree, newNode]);
           }
         }
@@ -332,16 +338,30 @@ export const SceneTree: React.FC = () => {
   };
 
   const toggleExpand = useCallback((id: string) => {
-    setNodes((prev) => {
-      return prev.map((container) =>
-        container.id === id ? { ...container, isExpanded: !container.isExpanded } : container
-      );
+    const updateExpansion = (nodes: TreeNode[]): TreeNode[] => {
+      return nodes.map((node) => {
+        if (node.id === id) {
+          console.log(`Toggling node: ${id} ${!node.isExpanded}`);
+          return { ...node, isExpanded: !node.isExpanded };
+        }
+        if (node.children && node.children.length > 0) {
+          console.log(`Checking children of node: ${node.id}`);
+          return { ...node, children: updateExpansion(node.children) };
+        }
+        return node;
+      });
+    };
+  
+    setTreeData((prev) => {
+      console.log("Updating tree data...");
+      return updateExpansion(prev);
     });
   }, []);
+  
 
   const toggleVisibility = useCallback((id: string) => {
     setTreeData((prev) => updateNodeProperty(prev, id, "visible", (value: boolean) => !value));
-  }, []);
+  }, [updateNodeProperty]);
 
   const toggleLock = useCallback((id: string) => {
     setTreeData((prev) => updateNodeProperty(prev, id, "locked", (value: boolean) => !value));
@@ -353,7 +373,6 @@ export const SceneTree: React.FC = () => {
 
   const handleContainerClick = (e: React.MouseEvent, node: TreeNode) => {
     e.stopPropagation();
-    console.log("XXX NODE", node);
     if (e.shiftKey) {
       setSelectedNodes((prev) => {
         const newSelection = prev.includes(node.id) ? prev.filter((id) => id !== node.id) : [...prev, node.id];
@@ -381,18 +400,6 @@ export const SceneTree: React.FC = () => {
   );
 };
 
-// Funciones auxiliares para manipular el árbol
-const findNode = (nodes: TreeNode[], id: string): TreeNode | null => {
-  for (const node of nodes) {
-    if (node.id === id) return node;
-    if (node.children.length > 0) {
-      const found = findNode(node.children, id);
-      if (found) return found;
-    }
-  }
-  return null;
-};
-
 const updateNodeIcons = (nodes: TreeNode[], id: string, newIcons: PluginType[]): TreeNode[] => {
   return nodes.map((node) => {
     if (node.id === id) {
@@ -401,25 +408,6 @@ const updateNodeIcons = (nodes: TreeNode[], id: string, newIcons: PluginType[]):
     }
     if (node.children.length > 0) {
       return { ...node, children: updateNodeIcons(node.children, id, newIcons) };
-    }
-    return node;
-  });
-};
-
-const updateNodeProperty = <T extends keyof TreeNode, K extends TreeNode[T]>(
-  nodes: TreeNode[],
-  id: string,
-  property: T,
-  value: K | ((oldValue: K) => K)
-): TreeNode[] => {
-  return nodes.map((node) => {
-    if (node.id === id) {
-      const oldValue = node[property] as K;
-      const newValue = typeof value === "function" ? value(oldValue) : value;
-      return { ...node, [property]: newValue };
-    }
-    if (node.children.length > 0) {
-      return { ...node, children: updateNodeProperty(node.children, id, property, value) };
     }
     return node;
   });
