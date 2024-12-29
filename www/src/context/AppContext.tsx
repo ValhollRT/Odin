@@ -1,29 +1,18 @@
 import { Mesh, type Scene } from "@babylonjs/core";
 import React, { createContext, useContext, useState, type ReactNode } from "react";
 import { AnimationData, Object3D, SelectedProperty } from "../components/timeline/interfaces";
+import { TreeNode } from "../components/sceneTree/sceneTree";
 
-export type IconType = "group" | "geometry" | "text" | "image" | "video" | "audio";
 
-export interface Container {
-  id: string;
-  color?: string;
-  name: string;
-  isExpanded?: boolean;
-  meshId?: string;
-  icons: IconType[];
-  visible: boolean;
-  locked: boolean;
-  children: Container[];
-}
 interface AppContextType {
   scene: Scene | null;
   setScene: (scene: Scene | null) => void;
-  containers: Container[];
-  setContainers: React.Dispatch<React.SetStateAction<Container[]>>;
+  nodes: TreeNode[];
+  setNodes: React.Dispatch<React.SetStateAction<TreeNode[]>>;
   meshes: Mesh[];
   setMeshes: React.Dispatch<React.SetStateAction<Mesh[]>>;
-  selectedContainers: string[];
-  setSelectedContainers: React.Dispatch<React.SetStateAction<string[]>>;
+  selectedNodes: string[];
+  setSelectedNodes: React.Dispatch<React.SetStateAction<string[]>>;
   objects: Object3D[];
   setObjects: React.Dispatch<React.SetStateAction<Object3D[]>>; // Replace used in timeline
   animationData: AnimationData;
@@ -39,8 +28,8 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   // General App
   const [scene, setScene] = useState<Scene | null>(null);
-  const [containers, setContainers] = useState<Container[]>([]);
-  const [selectedContainers, setSelectedContainers] = useState<string[]>([]);
+  const [nodes, setNodes] = useState<TreeNode[]>([]);
+  const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
   const [meshes, setMeshes] = useState<Mesh[]>([]);
 
   // Timeline
@@ -98,12 +87,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       value={{
         scene,
         setScene,
-        containers,
-        setContainers,
+        nodes: nodes,
+        setNodes: setNodes,
         meshes,
         setMeshes,
-        selectedContainers,
-        setSelectedContainers,
+        selectedNodes: selectedNodes,
+        setSelectedNodes: setSelectedNodes,
         objects,
         setObjects,
         addProperty,

@@ -17,11 +17,7 @@ const colors = [
 
 const GeometryCreator = () => {
   const [activeTab, setActiveTab] = useState("geometries");
-  const { containers } = useAppContext();
-
-  useEffect(() => {
-    console.log(containers);
-  }, [containers]);
+  const { nodes: containers } = useAppContext();
 
   const handleDragStart = (e: React.DragEvent, type: string) => {
     e.dataTransfer.setData("geometryType", type);

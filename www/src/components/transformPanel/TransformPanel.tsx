@@ -6,16 +6,23 @@ import { Separator } from "../ui/Separator"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./Collapsable"
 import { Input } from "../ui/Input"
 import "./transformPanel.css"
+import { useAppContext } from "../../context/AppContext"
 
 
 // Custom hook for scrubbing functionality with infinite dragging
 const useScrubInput = (initialValue: number, onChange: (value: number) => void, baseStep: number = 1) => {
+  const { selectedNodes, nodes, meshes } = useAppContext();
   const [value, setValue] = useState(initialValue)
   const isDragging = useRef(false)
   const lastClientX = useRef(0)
   const accumulatedDelta = useRef(0)
   const shiftKey = useRef(false)
   const ctrlKey = useRef(false)
+
+
+  useEffect( () => {
+    console.log("selectedNodes, nodes, meshes", selectedNodes, nodes, meshes)
+  }, [selectedNodes])
 
   const getStep = useCallback(() => {
     if (ctrlKey.current && shiftKey.current) return baseStep * 0.001
@@ -33,6 +40,7 @@ const useScrubInput = (initialValue: number, onChange: (value: number) => void, 
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
   }, [])
+
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isDragging.current) {
@@ -102,17 +110,19 @@ const ScrubInput = ({ value, onChange, baseStep = 1, ...props }: { value: number
   )
 }
 
-export default function Component() {
+export const TransformPanel = () => {
+  const { selectedNodes } = useAppContext();
+
   const [coordinates, setCoordinates] = useState("parent")
   const [mode, setMode] = useState("absolute")
-  const [position, setPosition] = useState({ x: 318.1904, y: 157.1068, z: 0.0 })
+  const [position, setPosition] = useState({ x: 0.0, y: 0.0, z: 0.0 })
   const [rotation, setRotation] = useState({ x: 0.0, y: 0.0, z: 0.0 })
   const [rotationOrder, setRotationOrder] = useState("xyz")
   const [scale, setScale] = useState({ x: 1.0, y: 1.0, z: 1.0 })
   const [scaleMode, setScaleMode] = useState("locked")
   const [axisCenter, setAxisCenter] = useState({ x: 0.0, y: 0.0, z: 0.0 })
-  const [screenPosition, setScreenPosition] = useState({ x: 1659, y: -0 })
-  const [screenSize, setScreenSize] = useState({ x: 261, y: 261 })
+  const [screenPosition, setScreenPosition] = useState({ x: 0, y: 0 })
+  const [screenSize, setScreenSize] = useState({ x: 1, y: 1 })
 
   const handlePositionChange = (axis: keyof typeof position, value: number) => {
     setPosition(prev => ({ ...prev, [axis]: value }))
@@ -129,6 +139,13 @@ export default function Component() {
       setScale(prev => ({ ...prev, [axis]: value }))
     }
   }
+
+
+  useEffect(() => {
+    if (selectedNodes) {
+      
+    }
+  }, [selectedNodes]);
 
   return (
     <>
@@ -462,3 +479,5 @@ export default function Component() {
     </>
   )
 }
+
+export default TransformPanel;

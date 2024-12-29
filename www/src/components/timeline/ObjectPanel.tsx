@@ -83,7 +83,6 @@ export const ObjectProperties: React.FC<{
 
           <ContextMenuItem
             onClick={() => {
-              console.log(`Removing property: ${key} from object: ${objectId}`);
               removeProperty({ objectId: objectId, property: key });
             }}
           >

@@ -1,19 +1,7 @@
-import { DynamicTexture, Mesh, MeshBuilder, Scene, StandardMaterial } from "@babylonjs/core";
-import {
-  Box,
-  ChevronRight,
-  Cone,
-  Cylinder,
-  Diameter,
-  Disc,
-  Layers,
-  Pill,
-  Plane,
-  Torus,
-  TriangleRight,
-} from "lucide-react";
+import { DynamicTexture, Mesh, MeshBuilder, Nullable, Scene, StandardMaterial } from "@babylonjs/core";
+import { Axis3D, Box, Cone, Cylinder, Diameter, Disc, Layers, Pill, Plane, Torus, TriangleRight } from "lucide-react";
+import { generarUUID } from "../context/utils";
 
-// Interfaz para describir los datos de la geometría
 export interface GeometryData {
   name: string;
   icon?: React.ReactNode;
@@ -48,6 +36,21 @@ export interface GeometryData {
     | "CreateCapsule"
     | "CreateText";
   options?: any;
+}
+
+export type PluginType = "transform" | "mesh" | "text" | "image" | "video" | "audio" | "axis";
+export interface OdinPlugin {
+  type: PluginType;
+  icon?: React.ReactNode;
+}
+
+export interface TransformPlugin extends OdinPlugin {
+  type: "transform";
+}
+
+export interface MeshPlugin extends OdinPlugin {
+  type: "mesh";
+  meshId: string;
 }
 
 // Definición de los datos de la geometría
@@ -98,9 +101,9 @@ const geometryData: GeometryData[] = [
 ];
 
 // Función para crear la geometría
-const createGeometry = (scene: Scene, type: GeometryData): Mesh | null => {
-  const id = Date.now();
-  const meshName = `${id}`;
+const createGeometry = (scene: Scene, type: GeometryData): { mesh: Mesh; plugins: OdinPlugin[] } | null => {
+  const guid = generarUUID();
+  const meshName = `${guid}`;
   if (type.method === "CreateText") {
     const { text, size } = type.options;
 
@@ -119,20 +122,30 @@ const createGeometry = (scene: Scene, type: GeometryData): Mesh | null => {
     textPlane.material = textMaterial;
     textPlane.position.y = 2.5;
 
-    return textPlane;
+    return {} as any;
   }
 
   // Crear geometrías estándar usando MeshBuilder
   const mesh = MeshBuilder[type.method](meshName, type.options, scene);
 
-  console.log(mesh);
+  const transformPlugin: TransformPlugin = {
+    type: "transform",
+    icon: <Axis3D />,
+  };
+
+  const meshPlugin: MeshPlugin = {
+    type: "mesh",
+    icon: type.icon,
+    meshId: mesh.id
+  };
+
   if (mesh) {
-    mesh.position.x = (Math.random() - 0.5) * 20;
-    mesh.position.z = (Math.random() - 0.5) * 20;
-    mesh.position.y = 2.5;
-    return mesh;
+    mesh.position.x = 0;
+    mesh.position.z = 0;
+    mesh.position.y = 0;
+    return { mesh, plugins: [transformPlugin, meshPlugin] };
   } else {
-    console.error(`Error al crear la geometría ${type.name}`);
+    console.error(`Error creating a mesh ${type.name}`);
     return null;
   }
 };
