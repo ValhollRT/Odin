@@ -23,7 +23,6 @@ export const SceneTree: React.FC = () => {
   const [dropPosition, setDropPosition] = useState<"before" | "inside" | "after" | null>(null);
   const [selectedIcon, setSelectedIcon] = useState<{ id: string; type: PluginType } | null>(null);
 
-
   const findNodeById = (nodes: TreeNode[], id: string): TreeNode | undefined => {
     for (const node of nodes) {
       if (node.id === id) {
@@ -39,7 +38,7 @@ export const SceneTree: React.FC = () => {
     return undefined;
   };
 
-  // Función recursiva para renderizar los nodos del árbol
+  // Recursive function to render tree nodes
   const renderNode = (node: TreeNode, level: number) => {
     const isDraggingOver = targetNode?.id === node.id;
     const isExpanded = node.children.length > 0 && findNodeById(treeData, node.id)?.isExpanded;
@@ -124,15 +123,15 @@ export const SceneTree: React.FC = () => {
   }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent, node: TreeNode) => {
-    e.preventDefault(); // Permite el drop
-    e.stopPropagation(); // Evita propagación a padres
+    e.preventDefault(); // Allow drop
+    e.stopPropagation(); // Prevent propagation to parent
     const firstChild = e.currentTarget;
     if (!firstChild) return;
 
     const rect = firstChild.getBoundingClientRect();
     const y = e.clientY - rect.top;
 
-    // Calcular la posición relativa dentro del elemento
+    // Calculate relative position inside the element
     let position: "before" | "inside" | "after" = "inside";
     if (y < rect.height * 0.33) {
       position = "before";
@@ -144,7 +143,7 @@ export const SceneTree: React.FC = () => {
     setDropPosition(position);
   }, []);
 
-  // 1. Primero la función findNodeAndParent
+  // 1. First the findNodeAndParent function
   const findNodeAndParent = useCallback(
     (
       nodes: TreeNode[],
@@ -165,27 +164,27 @@ export const SceneTree: React.FC = () => {
     []
   );
 
-  // 2. Función para verificar si un nodo es descendiente de otro
+  // 2. Function to check if a node is a descendant of another
   const isDescendant = useCallback((parent: TreeNode, child: TreeNode): boolean => {
     if (parent.id === child.id) return true;
     return parent.children.some((node) => isDescendant(node, child));
   }, []);
 
-  // Función para encontrar el nodo padre dado un ID de hijo
+  // Function to find the parent node given a child ID
   const findParentNode = useCallback((nodes: TreeNode[], childId: string): TreeNode | null => {
     for (const node of nodes) {
-      // Comprueba si alguno de los hijos directos tiene el ID buscado
+      // Check if any direct child has the searched ID
       if (node.children.some((child) => child.id === childId)) {
         return node;
       }
-      // Si no está en los hijos directos, busca recursivamente en los hijos
+      // If not in direct children, recursively search in children
       const foundInChildren = findParentNode(node.children, childId);
       if (foundInChildren) return foundInChildren;
     }
     return null;
   },[]);
 
-  // Actualizar el findNode existente para hacerlo más robusto
+  // Update the existing findNode to make it more robust
   const findNode = useCallback((nodes: TreeNode[], id: string): TreeNode | null => {
     for (const node of nodes) {
       if (node.id === id) return node;
@@ -197,7 +196,7 @@ export const SceneTree: React.FC = () => {
     return null;
   },[]);
 
-  // Función auxiliar para actualizar nodos
+  // Helper function to update node properties
   const updateNodeProperty = useCallback(<T extends keyof TreeNode, K extends TreeNode[T]>(
     nodes: TreeNode[],
     id: string,
@@ -217,7 +216,7 @@ export const SceneTree: React.FC = () => {
     });
   },[]);
 
-  // 3. Modificamos el handleDrop
+  // 3. Modify the handleDrop function
   const handleDrop = useCallback(
     (e: React.DragEvent, targetNode: TreeNode) => {
       e.preventDefault();
@@ -226,7 +225,7 @@ export const SceneTree: React.FC = () => {
       const draggedNodeId = e.dataTransfer.getData("nodeId");
       const iconType = e.dataTransfer.getData("iconType") as PluginType;
 
-      // Manejo de drop de iconos (sin cambios)
+      // Handle drop of icons (no changes)
       if (iconType) {
         setTreeData((prevTree) => {
           const draggedNode = findNode(prevTree, draggedNodeId);
@@ -241,20 +240,20 @@ export const SceneTree: React.FC = () => {
       }
 
       setTreeData((prevTree) => {
-        // En lugar de usar JSON.parse/stringify, creamos una función de clonado que preserve los iconos
+        // Instead of using JSON.parse/stringify, create a cloning function that preserves icons
         const cloneNode = (node: TreeNode): TreeNode => {
           return {
             ...node,
             plugins: node.plugins.map((plugin) => ({
               ...plugin,
-              // Preservamos el icono original
+              // Preserve the original icon
               icon: plugin.icon,
             })),
             children: node.children.map((child) => cloneNode(child)),
           };
         };
 
-        // Clonamos el árbol preservando los iconos
+        // Clone the tree preserving the icons
         const newTree = prevTree.map((node) => cloneNode(node));
 
         const sourceNode = findNode(newTree, draggedNodeId);
@@ -262,7 +261,7 @@ export const SceneTree: React.FC = () => {
 
         if (!sourceNode) return prevTree;
 
-        // El resto del código de handleDrop sigue igual...
+        // The rest of the handleDrop code remains the same...
         if (sourceParent) {
           sourceParent.children = sourceParent.children.filter((child) => child.id !== draggedNodeId);
         } else {
@@ -403,7 +402,7 @@ export const SceneTree: React.FC = () => {
 const updateNodeIcons = (nodes: TreeNode[], id: string, newIcons: PluginType[]): TreeNode[] => {
   return nodes.map((node) => {
     if (node.id === id) {
-      // Mantenemos los plugins existentes, solo actualizamos los iconos
+      // Keep existing plugins, only update icons
       return { ...node, plugins: node.plugins };
     }
     if (node.children.length > 0) {
